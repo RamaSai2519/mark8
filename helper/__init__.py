@@ -61,6 +61,19 @@ class Helper:
         transcript = response['Body'].read().decode('utf-8')
         return transcript
 
+    @staticmethod
+    def clean_dict(doc: dict, dataClass) -> dict:
+        if doc:
+            document_fields = set(dataClass.__annotations__.keys())
+            doc = {k: v for k, v in doc.items() if k in document_fields}
+        return doc
+
+    @staticmethod
+    def duration_str_to_seconds(duration: str) -> int:
+        duration = duration.split(':')
+        hours, minutes, seconds = map(int, duration)
+        return hours * 3600 + minutes * 60 + seconds
+
     def download_audio(self) -> None:
         if not self.recording_url.startswith("http"):
             return None

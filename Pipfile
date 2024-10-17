@@ -10,6 +10,9 @@ openai = "*"
 python-dotenv = "*"
 pymongo = "*"
 pytz = "*"
+flask = "*"
+flask-cors = "*"
+awsgi = "*"
 
 [dev-packages]
 

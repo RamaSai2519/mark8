@@ -90,6 +90,7 @@ class Compute:
 
         for step in steps:
             if not self.helper.run_step(step["description"], step["method"]):
-                return None 
+                return None
+
 
         return self.output
