@@ -1,10 +1,14 @@
 import os
 import re
 import json
+import boto3
 import requests
 import subprocess
-from config import DEEPGRAM_API_KEY
 from urllib.parse import urlparse, ParseResult
+from config import DEEPGRAM_API_KEY, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, MAIN_LAMBDA_URL as url
+
+s3_client = boto3.client(
+    's3', aws_access_key_id=AWS_ACCESS_KEY_ID, aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
 
 
 class Helper:
@@ -25,6 +29,38 @@ class Helper:
                 return json.loads(response_text)
         return json.loads(format_spec)
 
+    @staticmethod
+    def check_for_transcript_file(callId: str) -> bool:
+        bucket_name = 'sukoontest'
+        filename = f"{callId}.txt"
+        try:
+            s3_client.head_object(Bucket=bucket_name, Key=filename)
+            return True
+        except Exception as e:
+            return False
+
+    @staticmethod
+    def upload_transcript(transcript: str, callId: str) -> str:
+        bucket_name = 'sukoontest'
+        filename = f"{callId}.txt"
+        url = f"https://{bucket_name}.s3.amazonaws.com/{filename}"
+        with open(filename, 'w') as file:
+            file.write(transcript)
+        with open(filename, 'rb') as data:
+            s3_client.upload_fileobj(data, bucket_name, filename)
+
+        os.remove(filename)
+
+        return url
+
+    @staticmethod
+    def get_transcript(callId: str) -> str:
+        bucket_name = 'sukoontest'
+        filename = f"{callId}.txt"
+        response = s3_client.get_object(Bucket=bucket_name, Key=filename)
+        transcript = response['Body'].read().decode('utf-8')
+        return transcript
+
     def download_audio(self) -> None:
         if not self.recording_url.startswith("http"):
             return None
@@ -37,6 +73,9 @@ class Helper:
         print(f"Downloaded audio for call ID: {self.callId}")
 
     def download_and_transcribe_audio(self) -> bool:
+        if Helper.check_for_transcript_file(self.callId):
+            return Helper.get_transcript(self.callId)
+
         self.download_audio()
 
         curl_command = [
@@ -67,10 +106,10 @@ class Helper:
 
     def get_guidelines(self) -> str:
         if self.user_calls_count == 1:
-            with open("guidelines.txt", "r", encoding="utf-8") as file:
+            with open("texts/guidelines.txt", "r", encoding="utf-8") as file:
                 guidelines = file.read()
         else:
-            with open("guidelines2.txt", "r", encoding="utf-8") as file:
+            with open("texts/guidelines2.txt", "r", encoding="utf-8") as file:
                 guidelines = file.read()
         return guidelines
 
@@ -82,3 +121,23 @@ class Helper:
         except Exception as e:
             print(f"Error calculating total score: {str(e)}")
             return 0
+
+    def run_step(self, step_name: str, step_function: callable) -> bool:
+        print(f"{step_name} started for call ID: {self.callId}")
+        result = step_function()
+        if not result:
+            print(f"Error: {step_name} failed for call ID: {self.callId}")
+            return False
+
+        print(f"{step_name} completed for call ID: {self.callId}")
+        return True
+
+    def updater(expert_id: str, expert_number: str) -> None:
+        payload = json.dumps({
+            "expert_id": expert_id,
+            "expert_number": expert_number
+        })
+        headers = {'Content-Type': 'application/json'}
+        response = requests.request("POST", url, headers=headers, data=payload)
+
+        print(response.text)

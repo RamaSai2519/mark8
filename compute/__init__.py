@@ -1,14 +1,14 @@
 from helper import Helper
-from prompts import Prompts
-from config import open_ai_client as client
+from openai import AzureOpenAI
+from helper.prompts import Prompts
 from interfaces import AnalyserOutput, Constants
+from config import  OPEN_AI_VERSION, OPENAI_API_KEY, AZURE_ENDPOINT
 
 user = Constants.user
 
 
-class Analyser:
+class Compute:
     def __init__(self, call_document: dict, user_name: str, expert_name: str, user_persona: str, user_calls_count: int) -> None:
-        # Input data
         self.user_name = user_name
         self.expert_name = expert_name
         self.call_document = call_document
@@ -17,7 +17,8 @@ class Analyser:
         self.audio_filename = f"{self.callId}.mp3"
         self.old_persona = user_persona if user_persona != "None" else None
 
-        # Output data
+        self.client = AzureOpenAI(
+            azure_endpoint=AZURE_ENDPOINT, api_key=OPENAI_API_KEY, api_version=OPEN_AI_VERSION)
         self.helper = Helper(
             self.callId, self.audio_filename, call_document["recording_url"], user_calls_count)
         self.output = AnalyserOutput()
@@ -26,7 +27,7 @@ class Analyser:
 
     def chat(self, role, content) -> str | None:
         self.message_history.append({"role": role, "content": content})
-        response = client.chat.completions.create(
+        response = self.client.chat.completions.create(
             model="gpt-4-turbo", messages=self.message_history)
         assistant_response = response.choices[0].message.content
         self.message_history.append(
@@ -61,7 +62,7 @@ class Analyser:
         self.output.conversation_score = self.helper.extract_score(raw_score)
 
     def identify_topics(self) -> None:
-        with open("topics.txt", "r", encoding="utf-8") as file:
+        with open("texts/topics.txt", "r", encoding="utf-8") as file:
             topics = file.read()
         prompt = Prompts.get_topics_prompt(topics)
         topics = self.chat(user, prompt)
@@ -73,17 +74,22 @@ class Analyser:
         self.output.customer_persona = self.helper.extract_json(
             customer_persona)
 
-    def process_call(self) -> AnalyserOutput | None:
-        print(f"Starting process for call ID: {self.call_document['callId']}")
+    def generate_transcript(self) -> str:
         self.output.transcript = self.helper.download_and_transcribe_audio()
-        if not self.output.transcript:
-            return None
 
-        if not self.analyze_transcript():
-            return None
+    def process_call(self) -> AnalyserOutput | None:
+        print(f"Starting process for call ID: {self.callId}")
 
-        self.evaluate_call()
-        self.identify_topics()
-        self.generate_persona()
+        steps = [
+            {"description": "Downloading and transcribing audio", "method": self.generate_transcript},
+            {"description": "Analyzing transcript", "method": self.analyze_transcript},
+            {"description": "Evaluating call", "method": self.evaluate_call},
+            {"description": "Identifying topics", "method": self.identify_topics},
+            {"description": "Generating persona", "method": self.generate_persona},
+        ]
+
+        for step in steps:
+            if not self.helper.run_step(step["description"], step["method"]):
+                return None 
 
         return self.output
