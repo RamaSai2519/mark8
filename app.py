@@ -15,7 +15,7 @@ def process_call(callId: str) -> None:
         processor = Process(callId)
         output = processor.process()
         if not output:
-            raise Exception("Processing failed")
+            raise Exception("Error processing call")
 
         return "Call processed successfully", 200
     except Exception as e:

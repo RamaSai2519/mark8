@@ -57,35 +57,42 @@ class Compute:
 
         score_details = self.chat(user, prompts.score_details_prompt)
         score_details = self.helper.extract_json(score_details)
+        self.output.conversation_score_details = score_details
 
         raw_score = self.chat(user, prompts.score_prompt)
         self.output.conversation_score = self.helper.extract_score(raw_score)
 
+        return self.output.conversation_score
+
     def identify_topics(self) -> None:
-        with open("texts/topics.txt", "r", encoding="utf-8") as file:
+        topics_file = Helper.get_file_path("texts/topics.txt")
+        with open(topics_file, "r", encoding="utf-8") as file:
             topics = file.read()
         prompt = Prompts.get_topics_prompt(topics)
         topics = self.chat(user, prompt)
         self.output.topics = self.helper.extract_json(topics)
+        return self.output.topics
 
     def generate_persona(self) -> None:
         prompt = Prompts.get_persona_prompt(self.old_persona)
         customer_persona = self.chat(user, prompt)
         self.output.customer_persona = self.helper.extract_json(
             customer_persona)
+        return self.output.customer_persona
 
     def generate_transcript(self) -> str:
         self.output.transcript = self.helper.download_and_transcribe_audio()
+        return self.output.transcript
 
     def process_call(self) -> AnalyserOutput | None:
         print(f"Starting process for call ID: {self.callId}")
 
         steps = [
             {"description": "Downloading and transcribing audio", "method": self.generate_transcript},
-            {"description": "Analyzing transcript", "method": self.analyze_transcript},
-            {"description": "Evaluating call", "method": self.evaluate_call},
+            # {"description": "Analyzing transcript", "method": self.analyze_transcript},
+            # {"description": "Evaluating call", "method": self.evaluate_call},
             {"description": "Identifying topics", "method": self.identify_topics},
-            {"description": "Generating persona", "method": self.generate_persona},
+            # {"description": "Generating persona", "method": self.generate_persona},
         ]
 
         for step in steps:

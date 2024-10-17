@@ -74,8 +74,8 @@ class Process:
         if not call:
             return False
         call_document = call.__dict__
-        if not self.validate_call(call):
-            return False
+        # if not self.validate_call(call):
+        #     return False
 
         user = self.get_user(call.user)
         expert = self.get_expert(call.expert)

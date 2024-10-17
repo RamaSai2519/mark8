@@ -52,9 +52,8 @@ class Prompts:
 
     @staticmethod
     def get_topics_prompt(topics: str) -> str:
-        prompt = 'Identify the topics they are talking about from the {topics}. Give me the output in a json format like this: {"topic": "", "sub_topic": ""}'
-        prompt = prompt.format(topics=topics)
-        return prompt
+        prompt = "\n Identify the topics they are talking about from the topics above. Give me the output in a json format like this: {'topic': '', 'sub_topic': ''}"
+        return topics + prompt
 
     @staticmethod
     def get_persona_prompt(persona: str | None) -> str:

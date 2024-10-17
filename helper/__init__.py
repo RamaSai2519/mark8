@@ -20,6 +20,7 @@ class Helper:
 
     @staticmethod
     def extract_json(format_spec: str) -> dict:
+        print(format_spec)
         if "json" in format_spec:
             response_text = re.search(
                 r'```json\n(.*?)```', format_spec, re.DOTALL)
@@ -27,7 +28,12 @@ class Helper:
                 response_text = response_text.group(1)
                 response_text = response_text.replace("\n", "")
                 return json.loads(response_text)
-        return json.loads(format_spec)
+        format_spec = format_spec.replace("\n", "")
+        try:
+            format_spec = json.loads(format_spec)
+            return format_spec
+        except json.JSONDecodeError:
+            return {}
 
     @staticmethod
     def check_for_transcript_file(callId: str) -> bool:
@@ -74,6 +80,10 @@ class Helper:
         hours, minutes, seconds = map(int, duration)
         return hours * 3600 + minutes * 60 + seconds
 
+    @staticmethod
+    def get_file_path(filename: str) -> str:
+        return os.path.join(os.getcwd(), filename)
+
     def download_audio(self) -> None:
         if not self.recording_url.startswith("http"):
             return None
@@ -88,7 +98,6 @@ class Helper:
     def download_and_transcribe_audio(self) -> bool:
         if Helper.check_for_transcript_file(self.callId):
             return Helper.get_transcript(self.callId)
-
         self.download_audio()
 
         curl_command = [
@@ -139,6 +148,7 @@ class Helper:
         print(f"{step_name} started for call ID: {self.callId}")
         result = step_function()
         if not result:
+            print(result)
             print(f"Error: {step_name} failed for call ID: {self.callId}")
             return False
 
