@@ -1,0 +1,10 @@
+{
+  "function": {
+    "mark8": {
+      "build": true,
+      "dependsOn": [],
+      "providerPlugin": "awscloudformation",
+      "service": "Lambda"
+    }
+  }
+}

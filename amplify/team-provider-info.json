@@ -1,0 +1,20 @@
+{
+  "master": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-mark8-master-a10c8-authRole",
+      "UnauthRoleArn": "arn:aws:iam::533267308676:role/amplify-mark8-master-a10c8-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::533267308676:role/amplify-mark8-master-a10c8-authRole",
+      "Region": "ap-south-1",
+      "DeploymentBucketName": "amplify-mark8-master-a10c8-deployment",
+      "UnauthRoleName": "amplify-mark8-master-a10c8-unauthRole",
+      "StackName": "amplify-mark8-master-a10c8",
+      "StackId": "arn:aws:cloudformation:ap-south-1:533267308676:stack/amplify-mark8-master-a10c8/3e0c17b0-8cd4-11ef-9f42-0a8247017e4b",
+      "AmplifyAppId": "d20s3tadhlfuqi"
+    },
+    "categories": {
+      "function": {
+        "mark8": {}
+      }
+    }
+  }
+}
