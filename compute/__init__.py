@@ -2,7 +2,7 @@ from helper import Helper
 from openai import AzureOpenAI
 from helper.prompts import Prompts
 from interfaces import AnalyserOutput, Constants
-from config import  OPEN_AI_VERSION, OPENAI_API_KEY, AZURE_ENDPOINT
+from config import AZURE_GPT_ENDPOINT, GPT_API_KEY, GPT_VERSION
 
 user = Constants.user
 
@@ -17,8 +17,8 @@ class Compute:
         self.audio_filename = f"{self.callId}.mp3"
         self.old_persona = user_persona if user_persona != "None" else None
 
-        self.client = AzureOpenAI(
-            azure_endpoint=AZURE_ENDPOINT, api_key=OPENAI_API_KEY, api_version=OPEN_AI_VERSION)
+        self.gpt_client = AzureOpenAI(
+            azure_endpoint=AZURE_GPT_ENDPOINT, api_key=GPT_API_KEY, api_version=GPT_VERSION)
         self.helper = Helper(
             self.callId, self.audio_filename, call_document["recording_url"], user_calls_count)
         self.output = AnalyserOutput()
@@ -27,7 +27,7 @@ class Compute:
 
     def chat(self, role, content) -> str | None:
         self.message_history.append({"role": role, "content": content})
-        response = self.client.chat.completions.create(
+        response = self.gpt_client.chat.completions.create(
             model="gpt-4-turbo", messages=self.message_history)
         assistant_response = response.choices[0].message.content
         self.message_history.append(

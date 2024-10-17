@@ -13,6 +13,8 @@ requests = "*"
 aws-wsgi = "*"
 flask-cors = "*"
 python-dotenv = "*"
+numpy = "*"
+scikit-learn = "*"
 
 [dev-packages]
 
