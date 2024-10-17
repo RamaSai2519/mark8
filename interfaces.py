@@ -1,8 +1,10 @@
 from dataclasses import dataclass
 from typing import Optional
 
+
 class Constants:
     user = "user"
+
 
 @dataclass
 class TranscriptPrompts:
@@ -20,8 +22,9 @@ class EvaluationPrompts:
     guidelines_prompt: str
     score_details_prompt: str
 
+
 @dataclass
-class CallProcessorOutput:
+class AnalyserOutput:
     topics: Optional[str] = None
     summary: Optional[str] = None
     transcript: Optional[str] = None

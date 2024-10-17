@@ -16,11 +16,11 @@ db = client["test"]
 calls_collection = db["calls"]
 users_collection = db["users"]
 experts_collection = db["experts"]
-fcm_tokens_collection = db["fcm_tokens"]
-errorlog_collection = db["errorlogs"]
 timings_collection = db["timings"]
+errorlog_collection = db["errorlogs"]
 callsmeta_collection = db["callsmeta"]
 schedules_collection = db["schedules"]
+fcm_tokens_collection = db["fcm_tokens"]
 
 DEEPGRAM_API_KEY = os.getenv("DEEPGRAM_API_KEY")
 
