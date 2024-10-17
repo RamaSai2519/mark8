@@ -4,15 +4,15 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-boto3 = "*"
-requests = "*"
-openai = "*"
-python-dotenv = "*"
-pymongo = "*"
 pytz = "*"
+boto3 = "*"
 flask = "*"
+openai = "*"
+pymongo = "*"
+requests = "*"
+aws-wsgi = "*"
 flask-cors = "*"
-awsgi = "*"
+python-dotenv = "*"
 
 [dev-packages]
 
