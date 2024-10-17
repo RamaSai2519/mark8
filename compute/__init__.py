@@ -91,10 +91,10 @@ class Compute:
 
         steps = [
             {"description": "Downloading and transcribing audio", "method": self.generate_transcript},
-            # {"description": "Analyzing transcript", "method": self.analyze_transcript},
-            # {"description": "Evaluating call", "method": self.evaluate_call},
+            {"description": "Analyzing transcript", "method": self.analyze_transcript},
+            {"description": "Evaluating call", "method": self.evaluate_call},
             {"description": "Identifying topics", "method": self.identify_topics},
-            # {"description": "Generating persona", "method": self.generate_persona},
+            {"description": "Generating persona", "method": self.generate_persona},
         ]
 
         for step in steps:
