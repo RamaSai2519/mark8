@@ -1,5 +1,6 @@
+import time
 from helper import Helper
-from openai import AzureOpenAI
+from openai import AzureOpenAI, RateLimitError
 from helper.prompts import Prompts
 from interfaces import AnalyserOutput, Constants
 from config import GPT_ENDPOINT, GPT_API_KEY, GPT_VERSION, ADA_API_KEY, ADA_VERSION, ADA_ENDPOINT
@@ -30,8 +31,15 @@ class Compute:
 
     def chat(self, role, content) -> str | None:
         self.message_history.append({"role": role, "content": content})
-        response = self.gpt_client.chat.completions.create(
-            model="gpt-4-turbo", messages=self.message_history)
+
+        try:
+            response = self.gpt_client.chat.completions.create(
+                model="gpt-4-turbo", messages=self.message_history)
+        except RateLimitError:
+            time.sleep(5)
+            response = self.gpt_client.chat.completions.create(
+                model="gpt-4-turbo", messages=self.message_history)
+
         assistant_response = response.choices[0].message.content
         self.message_history.append(
             {"role": "assistant", "content": assistant_response})
