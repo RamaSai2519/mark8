@@ -71,8 +71,8 @@ class Process:
         if call.recording_url in ["None", "", None]:
             return False, f"Call {self.callId} has no recording"
         duration = Helper.duration_str_to_seconds(call.duration)
-        if duration > 120:
-            return False, f"Call {self.callId} duration is more than 2 minutes"
+        if duration < 120:
+            return False, f"Call {self.callId} duration is less than 2 minutes"
         return True, ""
 
     def process(self) -> tuple[bool, str]:
