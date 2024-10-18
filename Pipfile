@@ -1,12 +1,9 @@
 [[source]]
-name = "pypi"
 url = "https://pypi.org/simple"
 verify_ssl = true
-
-[dev-packages]
+name = "pypi"
 
 [packages]
-src = {editable = true, path = "./src"}
 pytz = "*"
 boto3 = "*"
 flask = "*"
@@ -16,6 +13,9 @@ requests = "*"
 aws-wsgi = "*"
 flask-cors = "*"
 python-dotenv = "*"
+numpy = "*"
+
+[dev-packages]
 
 [requires]
 python_version = "3.12"

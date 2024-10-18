@@ -1,7 +1,7 @@
 import hashlib
 import numpy as np
-from pymongo.collection import Collection
 from openai import AzureOpenAI
+from pymongo.collection import Collection
 
 class Embedder:
     def __init__(self, ada_client: AzureOpenAI) -> None:
