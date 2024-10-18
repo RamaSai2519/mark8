@@ -25,6 +25,7 @@ while True:
     print(f"Processing {len(apt_calls)} calls")
     for call in apt_calls:
         payload = {"callId": call.callId}
+        print(f"Requesting processing for: {call.callId}")
         response = requests.post("http://localhost:8080/process", json=payload)
         print(response.json())
 

@@ -7,30 +7,30 @@ from bson import ObjectId
 class Constants:
     user = "user"
     persona_dict = {
-        'demographics': {
-            'gender': '',
-            'ethnicity': '',
-            'education': '',
-            'maritalStatus': '',
-            'income': '',
-            'livingStatus': '',
-            'medicalHistory': '',
-            'location': '',
-            'techComfort': '',
-            'standardOfLiving': '',
-            'familyMembers': '',
-            'workStatus': '',
-            'lastCompany': '',
-            'languagePreference': '',
-            'physicalState': ''
+        "demographics": {
+            "gender": "",
+            "ethnicity": "",
+            "education": "",
+            "maritalStatus": "",
+            "income": "",
+            "livingStatus": "",
+            "medicalHistory": "",
+            "location": "",
+            "techComfort": "",
+            "standardOfLiving": "",
+            "familyMembers": "",
+            "workStatus": "",
+            "lastCompany": "",
+            "languagePreference": "",
+            "physicalState": ""
         },
-        'psychographics': {
-            'needs': '',
-            'values': '',
-            'painPoints': '',
-            'motivators': ''
+        "psychographics": {
+            "needs": "",
+            "values": "",
+            "painPoints": "",
+            "motivators": ""
         },
-        'personality': ''
+        "personality": ""
     }
 
 

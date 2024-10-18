@@ -13,11 +13,18 @@ s3_client = boto3.client(
     's3', aws_access_key_id=AWS_ACCESS_KEY, aws_secret_access_key=AWS_SECRET_KEY)
 
 
-def log(message: str) -> None:
+def log(callId: str, message: str) -> None:
     datetime_now = datetime.now(pytz.timezone("Asia/Kolkata"))
     current_time = datetime_now.strftime("%Y-%m-%d %H:%M:%S")
-    errorlog_collection.insert_one(
-        {"message": message, "time": current_time})
+    error_log: dict = errorlog_collection.find_one({"callId": callId})
+    if error_log:
+        logs: list = error_log.get("logs", [])
+        logs.append({"message": message, "time": current_time})
+        errorlog_collection.update_one(
+            {"callId": callId}, {"$set": {"logs": logs}})
+    else:
+        errorlog_collection.insert_one(
+            {"callId": callId, "logs": [{"message": message, "time": current_time}]})
     print(current_time, message)
 
 
@@ -28,21 +35,20 @@ class Helper:
         self.audio_filename = audio_filename
         self.user_calls_count = user_calls_count
 
-    @staticmethod
-    def extract_json(format_spec: str) -> dict:
-        if "json" in format_spec:
-            response_text = re.search(
-                r'```json\n(.*?)```', format_spec, re.DOTALL)
-            if response_text:
-                response_text = response_text.group(1)
-                response_text = response_text.replace("\n", "")
-                return json.loads(response_text)
-        format_spec = format_spec.replace("\n", "")
+    def extract_json(self, format_spec: str) -> dict:
         try:
-            format_spec = json.loads(format_spec)
-            return format_spec
-        except json.JSONDecodeError:
-            log(f"Error decoding JSON: {format_spec}")
+            if "```json" in format_spec:
+                match = re.search(r'```json\n(.*?)```', format_spec, re.DOTALL)
+                if match:
+                    response_text = match.group(1).replace("\n", "").replace("'", "\"")
+                    response_text = json.loads(response_text)
+                    return response_text
+
+            cleaned_format_spec = format_spec.replace("\n", "").replace("'", "\"")
+            cleaned_format_spec = json.loads(cleaned_format_spec)
+            return cleaned_format_spec
+        except Exception:
+            log(self.callId, f"Error decoding JSON: {format_spec}")
             return {}
 
     @staticmethod
@@ -110,7 +116,7 @@ class Helper:
         response = requests.get(url, params=params)
         with open(self.audio_filename, "wb") as f:
             f.write(response.content)
-        log(f"Downloaded audio for call ID: {self.callId}")
+        log(self.callId, "Audio downloaded")
 
     def download_and_transcribe_audio(self) -> bool:
         if Helper.check_for_transcript_file(self.callId):
@@ -125,11 +131,11 @@ class Helper:
             '--data-binary', f'@{self.audio_filename}'
         ]
 
-        log(f"Transcribing audio for call ID: {self.callId}")
+        log(self.callId, "Transcribing audio")
         result = subprocess.run(
             curl_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         if result.returncode != 0:
-            log(f"Error: {result.stderr}")
+            log(self.callId, f"Error: {result.stderr}")
             return False
 
         jq_command = [
@@ -137,10 +143,10 @@ class Helper:
         jq_result = subprocess.run(jq_command, input=result.stdout,
                                    stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         if jq_result.returncode != 0:
-            log(f"Error: {jq_result.stderr}")
+            log(self.callId, f"Error: {jq_result.stderr}")
             return False
 
-        log(f"Transcription completed for call ID: {self.callId}")
+        log(self.callId, "Transcription completed")
         os.remove(self.audio_filename)
         Helper.upload_transcript(jq_result.stdout, self.callId)
         return jq_result.stdout
@@ -160,21 +166,22 @@ class Helper:
             conversation_score = int(score_match[0])
             return conversation_score / 20
         except Exception as e:
-            log(f"Error calculating total score: {str(e)}")
+            log(self.callId, f"Error calculating total score: {str(e)}")
             return 0
 
     def run_step(self, step_name: str, step_function: callable) -> bool:
-        log(f"{step_name} started for call ID: {self.callId}")
+        log(self.callId, f"started: {step_name}")
         result = step_function()
         if not result:
-            log(result)
-            log(f"Error: {step_name} failed for call ID: {self.callId}")
+            log(self.callId, result)
+            log(self.callId, f"failed: {step_name}")
             return False
 
-        log(f"{step_name} completed for call ID: {self.callId}")
+        log(self.callId, f"completed: {step_name}")
         return True
 
-    def updater(expert_id: str, expert_number: str) -> None:
+    @staticmethod
+    def updater(callId: str, expert_id: str, expert_number: str) -> None:
         payload = json.dumps({
             "expert_id": expert_id,
             "expert_number": expert_number
@@ -182,5 +189,5 @@ class Helper:
         headers = {'Content-Type': 'application/json'}
         url = GAMES_PROCESSOR_URL + '/actions/expert_scores'
         response = requests.request("POST", url, headers=headers, data=payload)
-        log(f"Lambda response: {response.text}")
+        log(callId, f"Lambda response: {response.text}")
         return response.text

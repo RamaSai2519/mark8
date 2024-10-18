@@ -55,8 +55,8 @@ class Compute:
 
         if "All good" in analysis_result:
             return True
-        log(f"Inappropriate content found for call ID: {self.callId}")
-        log(f"Analysis result: {analysis_result}")
+        log(self.callId, "Inappropriate content found")
+        log(self.callId, f"Analysis result: {analysis_result}")
         raise Exception("Inappropriate content found")
 
     def evaluate_call(self) -> None:
@@ -105,7 +105,7 @@ class Compute:
         start_message = "Starting process for call with:\n CallId: {callId}\n User: {user_name}\n Expert: {expert_name}"
         start_message = start_message.format(
             callId=self.callId, user_name=self.user_name, expert_name=self.expert_name)
-        log(start_message)
+        log(self.callId, start_message)
 
         steps = [
             {"description": "Downloading and transcribing audio",

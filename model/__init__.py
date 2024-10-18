@@ -1,5 +1,7 @@
 import pytz
 import time
+import traceback
+from helper import log
 from bson import ObjectId
 from helper import Helper
 from compute import Compute
@@ -102,6 +104,7 @@ class Process:
             if str(e) == "Inappropriate content found":
                 self.update_call(call.callId, 0)
                 return False, f"Inappropriate content found for call {self.callId}"
+            log(self.callId, traceback.format_exc())
             return False, f"An error occurred processing call {self.callId}: {str(e)}"
 
         if not output or not output.transcript:
@@ -126,7 +129,7 @@ class Process:
         self.update_user(user._id, output.customer_persona)
         self.update_expert(expert._id, output.expert_persona)
         self.update_call(call.callId, output.conversation_score)
-        Helper.updater(str(expert._id), expert.phoneNumber)
+        Helper.updater(call.callId, str(expert._id), expert.phoneNumber)
 
         finish = time.perf_counter()
         total_seconds = round(finish - start, 2)

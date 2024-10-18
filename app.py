@@ -15,14 +15,13 @@ def process_call(callId: str) -> None:
         processor = Process(callId)
         success, message = processor.process()
         if not success:
-            log(message)
+            log(callId, message)
             return jsonify({"message": message}), 400
         return jsonify({"message": message}), 200
     except Exception as e:
-        message = f"An error occurred processing call {callId}: {str(e)}"
-        log(message)
-        log(message)
-        log(traceback.format_exc())
+        message = f"An error occurred processing call: {str(e)}"
+        log(callId, message)
+        log(callId, traceback.format_exc())
         return jsonify({"message": message}), 500
 
 
@@ -37,7 +36,6 @@ def process_call_route():
 
 
 def handler(event, context):
-    log(event)
     return awsgi.response(app, event, context)
 
 
