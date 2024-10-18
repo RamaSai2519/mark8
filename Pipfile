@@ -5,6 +5,7 @@ name = "pypi"
 
 [packages]
 pytz = "*"
+numpy = "*"
 boto3 = "*"
 flask = "*"
 openai = "*"
@@ -12,8 +13,6 @@ pymongo = "*"
 requests = "*"
 aws-wsgi = "*"
 flask-cors = "*"
-python-dotenv = "*"
-numpy = "*"
 
 [dev-packages]
 

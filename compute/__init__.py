@@ -2,25 +2,26 @@ from helper import Helper
 from openai import AzureOpenAI
 from helper.prompts import Prompts
 from interfaces import AnalyserOutput, Constants
-from config import AZURE_GPT_ENDPOINT, GPT_API_KEY, GPT_VERSION, ADA_API_KEY, ADA_VERSION, AZURE_ADA_ENDPOINT
+from config import GPT_ENDPOINT, GPT_API_KEY, GPT_VERSION, ADA_API_KEY, ADA_VERSION, ADA_ENDPOINT
 
 user = Constants.user
 
 
 class Compute:
-    def __init__(self, call_document: dict, user_name: str, expert_name: str, user_persona: str, user_calls_count: int) -> None:
+    def __init__(self, call_document: dict, user_name: str, expert_name: str, user_persona: str, user_calls_count: int, expert_persona: str) -> None:
         self.user_name = user_name
         self.expert_name = expert_name
         self.call_document = call_document
+        self.old_user_persona = user_persona
         self.callId = call_document["callId"]
+        self.old_expert_persona = expert_persona
         self.user_calls_count = user_calls_count
         self.audio_filename = f"{self.callId}.mp3"
-        self.old_persona = user_persona if user_persona != "None" else None
 
         self.gpt_client = AzureOpenAI(
-            azure_endpoint=AZURE_GPT_ENDPOINT, api_key=GPT_API_KEY, api_version=GPT_VERSION)
+            azure_endpoint=GPT_ENDPOINT, api_key=GPT_API_KEY, api_version=GPT_VERSION)
         self.ada_client = AzureOpenAI(
-            azure_endpoint=AZURE_ADA_ENDPOINT, api_key=ADA_API_KEY, api_version=ADA_VERSION)
+            azure_endpoint=ADA_ENDPOINT, api_key=ADA_API_KEY, api_version=ADA_VERSION)
         self.helper = Helper(
             self.callId, self.audio_filename, call_document["recording_url"], user_calls_count)
         self.output = AnalyserOutput()
@@ -47,6 +48,7 @@ class Compute:
         if "All good" in analysis_result:
             return True
         print(f"Inappropriate content found for call ID: {self.callId}")
+        print(f"Analysis result: {analysis_result}")
         return False
 
     def evaluate_call(self) -> None:
@@ -75,11 +77,16 @@ class Compute:
         self.output.topics = self.helper.extract_json(topics)
         return self.output.topics
 
-    def generate_persona(self) -> None:
-        prompt = Prompts.get_persona_prompt(self.old_persona)
+    def generate_personas(self) -> None:
+        prompt = Prompts.get_persona_prompt(self.old_user_persona)
         customer_persona = self.chat(user, prompt)
         self.output.customer_persona = self.helper.extract_json(
             customer_persona)
+
+        prompt = Prompts.get_persona_prompt(self.old_expert_persona, "sarathi")
+        expert_persona = self.chat(user, prompt)
+        self.output.expert_persona = self.helper.extract_json(expert_persona)
+
         return self.output.customer_persona
 
     def generate_transcript(self) -> str:
@@ -87,19 +94,24 @@ class Compute:
         return self.output.transcript
 
     def process_call(self) -> AnalyserOutput | None:
-        print(f"Starting process for call ID: {self.callId}")
+        start_message = "Starting process for call with:\n CallId: {callId}\n User: {user_name}\n Expert: {expert_name}"
+        start_message = start_message.format(
+            callId=self.callId, user_name=self.user_name, expert_name=self.expert_name)
+        print(start_message)
 
         steps = [
-            {"description": "Downloading and transcribing audio", "method": self.generate_transcript},
-            {"description": "Analyzing transcript", "method": self.analyze_transcript},
+            {"description": "Downloading and transcribing audio",
+                "method": self.generate_transcript},
+            {"description": "Analyzing transcript",
+                "method": self.analyze_transcript},
             {"description": "Evaluating call", "method": self.evaluate_call},
             {"description": "Identifying topics", "method": self.identify_topics},
-            {"description": "Generating persona", "method": self.generate_persona},
+            {"description": "Generating personas",
+                "method": self.generate_personas},
         ]
 
         for step in steps:
             if not self.helper.run_step(step["description"], step["method"]):
                 return None
-
 
         return self.output

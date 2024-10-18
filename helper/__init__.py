@@ -5,10 +5,10 @@ import boto3
 import requests
 import subprocess
 from urllib.parse import urlparse, ParseResult
-from config import DEEPGRAM_API_KEY, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, MAIN_LAMBDA_URL as url
+from config import DEEPGRAM_API_KEY, AWS_ACCESS_KEY, AWS_SECRET_KEY, GAMES_PROCESSOR_URL
 
 s3_client = boto3.client(
-    's3', aws_access_key_id=AWS_ACCESS_KEY_ID, aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
+    's3', aws_access_key_id=AWS_ACCESS_KEY, aws_secret_access_key=AWS_SECRET_KEY)
 
 
 class Helper:
@@ -20,7 +20,6 @@ class Helper:
 
     @staticmethod
     def extract_json(format_spec: str) -> dict:
-        print(format_spec)
         if "json" in format_spec:
             response_text = re.search(
                 r'```json\n(.*?)```', format_spec, re.DOTALL)
@@ -33,6 +32,7 @@ class Helper:
             format_spec = json.loads(format_spec)
             return format_spec
         except json.JSONDecodeError:
+            print("Error decoding JSON:", format_spec)
             return {}
 
     @staticmethod
@@ -68,6 +68,13 @@ class Helper:
         return transcript
 
     @staticmethod
+    def get_transcript_url(callId: str) -> str:
+        bucket_name = 'sukoontest'
+        filename = f"{callId}.txt"
+        url = f"https://{bucket_name}.s3.amazonaws.com/{filename}"
+        return url
+
+    @staticmethod
     def clean_dict(doc: dict, dataClass) -> dict:
         if doc:
             document_fields = set(dataClass.__annotations__.keys())
@@ -87,7 +94,7 @@ class Helper:
     def download_audio(self) -> None:
         if not self.recording_url.startswith("http"):
             return None
-        url: ParseResult = urlparse(url)
+        url: ParseResult = urlparse(self.recording_url)
         url = url.scheme + "://" + url.netloc + url.path
         params = {"callid": self.callId}
         response = requests.get(url, params=params)
@@ -108,6 +115,7 @@ class Helper:
             '--data-binary', f'@{self.audio_filename}'
         ]
 
+        print(f"Transcribing audio for call ID: {self.callId}")
         result = subprocess.run(
             curl_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         if result.returncode != 0:
@@ -124,6 +132,7 @@ class Helper:
 
         print(f"Transcription completed for call ID: {self.callId}")
         os.remove(self.audio_filename)
+        Helper.upload_transcript(jq_result.stdout, self.callId)
         return jq_result.stdout
 
     def get_guidelines(self) -> str:
@@ -161,6 +170,7 @@ class Helper:
             "expert_number": expert_number
         })
         headers = {'Content-Type': 'application/json'}
+        url = GAMES_PROCESSOR_URL + '/actions/expert_scores'
         response = requests.request("POST", url, headers=headers, data=payload)
-
-        print(response.text)
+        print("Lambda response:", response.text)
+        return response.text

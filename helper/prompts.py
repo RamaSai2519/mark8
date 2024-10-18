@@ -1,4 +1,5 @@
-from interfaces import TranscriptPrompts, EvaluationPrompts
+import json
+from interfaces import TranscriptPrompts, EvaluationPrompts, Constants
 
 
 class Prompts:
@@ -40,7 +41,7 @@ class Prompts:
                 
                 Find the section relating to the parameters in the guidelines before you give a score. Higher score if the guidelines are followed. With the confidence score between 0 to 1.
                 Give me the output in a json format like this and don't add 
-                {"openingGreeting": 0,"timeSplit": 0,"userSentiment": 0,"flow": 0,"timeSpent": 0,"probability": 0,"closingGreeting": 0, "explanation": ""}
+                {"openingGreeting": 0,"timeSplit": 0,"userSentiment": 0,"flow": 0,"timeSpent": 0,"probability": 0,"closingGreeting": 0, "explanation": ''}
                 """
 
         score_prompt = "Give me a total score out of 100. Return only the number."
@@ -56,12 +57,12 @@ class Prompts:
         return topics + prompt
 
     @staticmethod
-    def get_persona_prompt(persona: str | None) -> str:
-        old_persona_prompt = "This is the user persona derived from previous call transcripts: {persona}. \n"
+    def get_persona_prompt(persona: str | None, person: str = "user") -> str:
+        old_persona_prompt = "This is the {person} persona derived from previous call transcripts: {persona}. \n"
         persona_prompt = """
-                Generate a user persona from the transcript provided above. Remember which speaker was the user and use only that speaker lines from the transcript to generate this persona. The persona should encompass demographics, psychographics, and personality traits based on the conversation. Specify the reason also for every field. Update the persona provided above , update only the field which you are sure about.
+                Generate a {person} persona from the transcript provided above. Remember which speaker was the {person} and use only that speaker lines from the transcript to generate this persona. The persona should encompass demographics, psychographics, and personality traits based on the conversation. Specify the reason also for every field. Update the persona provided above , update only the field which you are sure about.
 
-                a. User Demographics:
+                a. {person} Demographics:
                 1. Gender:
                 2. Ethnicity:
                 3. Education:
@@ -78,43 +79,26 @@ class Prompts:
                 14. Language Preference:
                 15. Physical State Of Being: 
 
-                b. User Psychographics:
+                b. {person} Psychographics:
                 1. Needs:
                 2. Values:
                 3. Pain Points/ Challenges:
                 4. Motivators:
 
-                c. User Personality: Choose one(Sanguine/Choleric/Melancholic/Phlegmatic)
+                c. {person} Personality: Choose one(Sanguine/Choleric/Melancholic/Phlegmatic)
                 with the confidence score between 0 to 1,
                 Please be strict in analysing and give correct data only
 
-                Give me the output in a json format like this:
-                {demographics: {
-                        gender: "",
-                        ethnicity: "",
-                        education: "",
-                        maritalStatus: "",
-                        income: "",
-                        livingStatus: "",
-                        medicalHistory: "",
-                        location: "",
-                        techComfort: "",
-                        standardOfLiving: "",
-                        familyMembers: "",
-                        workStatus: "",
-                        lastCompany: "",
-                        languagePreference: "",
-                        physicalState: ""
-                    },
-                    psychographics: {
-                        needs: "",
-                        values: "",
-                        painPoints: "",
-                        motivators: ""
-                    },
-                    personality: ""}
+                Give me the output in a json format like this: 
                 """
 
         if persona:
-            return old_persona_prompt.format(persona=persona) + persona_prompt
-        return persona_prompt
+            prompt = old_persona_prompt.format(
+                persona=persona, person=person) + persona_prompt.format(person=person)
+        else:
+            prompt = persona_prompt.format(person=person)
+
+        peronsa_dict = json.dumps(Constants.persona_dict, indent=4)
+        prompt += peronsa_dict
+
+        return prompt

@@ -6,6 +6,32 @@ from bson import ObjectId
 
 class Constants:
     user = "user"
+    persona_dict = {
+        'demographics': {
+            'gender': '',
+            'ethnicity': '',
+            'education': '',
+            'maritalStatus': '',
+            'income': '',
+            'livingStatus': '',
+            'medicalHistory': '',
+            'location': '',
+            'techComfort': '',
+            'standardOfLiving': '',
+            'familyMembers': '',
+            'workStatus': '',
+            'lastCompany': '',
+            'languagePreference': '',
+            'physicalState': ''
+        },
+        'psychographics': {
+            'needs': '',
+            'values': '',
+            'painPoints': '',
+            'motivators': ''
+        },
+        'personality': ''
+    }
 
 
 @dataclass
@@ -31,6 +57,7 @@ class AnalyserOutput:
     summary: Optional[str] = None
     transcript: Optional[str] = None
     user_callback: Optional[str] = None
+    expert_persona: Optional[dict] = None
     saarthi_feedback: Optional[str] = None
     customer_persona: Optional[dict] = None
     conversation_score: Optional[float] = None
@@ -91,6 +118,7 @@ class Expert:
     score: Optional[int] = None
     topics: Optional[str] = None
     status: Optional[str] = None
+    persona: Optional[str] = None
     active: Optional[bool] = None
     profile: Optional[str] = None
     isBusy: Optional[bool] = None
