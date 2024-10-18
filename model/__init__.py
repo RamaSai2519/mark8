@@ -80,9 +80,9 @@ class Process:
         call = self.get_call()
         if not call:
             return False, f"Call {self.callId} not found"
-        # valid, message = self.validate_call(call)
-        # if not valid:
-        #     return False, message
+        valid, message = self.validate_call(call)
+        if not valid:
+            return False, message
 
         user = self.get_user(call.user)
         expert = self.get_expert(call.expert)
