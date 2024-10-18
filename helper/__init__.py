@@ -14,7 +14,7 @@ s3_client = boto3.client(
 
 
 def log(callId: str, message: str) -> None:
-    datetime_now = datetime.now(pytz.timezone("Asia/Kolkata"))
+    datetime_now = datetime.now(pytz.utc)
     current_time = datetime_now.strftime("%Y-%m-%d %H:%M:%S")
     error_log: dict = errorlog_collection.find_one({"callId": callId})
     if error_log:
