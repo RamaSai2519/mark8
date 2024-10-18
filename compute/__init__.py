@@ -1,7 +1,7 @@
 import time
-from helper import Helper
-from openai import AzureOpenAI, RateLimitError
+from helper import Helper, log
 from helper.prompts import Prompts
+from openai import AzureOpenAI, RateLimitError
 from interfaces import AnalyserOutput, Constants
 from config import GPT_ENDPOINT, GPT_API_KEY, GPT_VERSION, ADA_API_KEY, ADA_VERSION, ADA_ENDPOINT
 
@@ -55,9 +55,9 @@ class Compute:
 
         if "All good" in analysis_result:
             return True
-        print(f"Inappropriate content found for call ID: {self.callId}")
-        print(f"Analysis result: {analysis_result}")
-        return False
+        log(f"Inappropriate content found for call ID: {self.callId}")
+        log(f"Analysis result: {analysis_result}")
+        raise Exception("Inappropriate content found")
 
     def evaluate_call(self) -> None:
         guidelines = self.helper.get_guidelines()
@@ -105,7 +105,7 @@ class Compute:
         start_message = "Starting process for call with:\n CallId: {callId}\n User: {user_name}\n Expert: {expert_name}"
         start_message = start_message.format(
             callId=self.callId, user_name=self.user_name, expert_name=self.expert_name)
-        print(start_message)
+        log(start_message)
 
         steps = [
             {"description": "Downloading and transcribing audio",

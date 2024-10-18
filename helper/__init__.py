@@ -1,14 +1,24 @@
 import os
 import re
+import pytz
 import json
 import boto3
 import requests
 import subprocess
+from datetime import datetime
 from urllib.parse import urlparse, ParseResult
-from config import DEEPGRAM_API_KEY, AWS_ACCESS_KEY, AWS_SECRET_KEY, GAMES_PROCESSOR_URL
+from config import DEEPGRAM_API_KEY, AWS_ACCESS_KEY, AWS_SECRET_KEY, GAMES_PROCESSOR_URL, errorlog_collection
 
 s3_client = boto3.client(
     's3', aws_access_key_id=AWS_ACCESS_KEY, aws_secret_access_key=AWS_SECRET_KEY)
+
+
+def log(message: str) -> None:
+    datetime_now = datetime.now(pytz.timezone("Asia/Kolkata"))
+    current_time = datetime_now.strftime("%Y-%m-%d %H:%M:%S")
+    errorlog_collection.insert_one(
+        {"message": message, "time": current_time})
+    print(current_time, message)
 
 
 class Helper:
@@ -32,7 +42,7 @@ class Helper:
             format_spec = json.loads(format_spec)
             return format_spec
         except json.JSONDecodeError:
-            print("Error decoding JSON:", format_spec)
+            log(f"Error decoding JSON: {format_spec}")
             return {}
 
     @staticmethod
@@ -100,7 +110,7 @@ class Helper:
         response = requests.get(url, params=params)
         with open(self.audio_filename, "wb") as f:
             f.write(response.content)
-        print(f"Downloaded audio for call ID: {self.callId}")
+        log(f"Downloaded audio for call ID: {self.callId}")
 
     def download_and_transcribe_audio(self) -> bool:
         if Helper.check_for_transcript_file(self.callId):
@@ -115,11 +125,11 @@ class Helper:
             '--data-binary', f'@{self.audio_filename}'
         ]
 
-        print(f"Transcribing audio for call ID: {self.callId}")
+        log(f"Transcribing audio for call ID: {self.callId}")
         result = subprocess.run(
             curl_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         if result.returncode != 0:
-            print(f"Error: {result.stderr}")
+            log(f"Error: {result.stderr}")
             return False
 
         jq_command = [
@@ -127,10 +137,10 @@ class Helper:
         jq_result = subprocess.run(jq_command, input=result.stdout,
                                    stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         if jq_result.returncode != 0:
-            print(f"Error: {jq_result.stderr}")
+            log(f"Error: {jq_result.stderr}")
             return False
 
-        print(f"Transcription completed for call ID: {self.callId}")
+        log(f"Transcription completed for call ID: {self.callId}")
         os.remove(self.audio_filename)
         Helper.upload_transcript(jq_result.stdout, self.callId)
         return jq_result.stdout
@@ -150,18 +160,18 @@ class Helper:
             conversation_score = int(score_match[0])
             return conversation_score / 20
         except Exception as e:
-            print(f"Error calculating total score: {str(e)}")
+            log(f"Error calculating total score: {str(e)}")
             return 0
 
     def run_step(self, step_name: str, step_function: callable) -> bool:
-        print(f"{step_name} started for call ID: {self.callId}")
+        log(f"{step_name} started for call ID: {self.callId}")
         result = step_function()
         if not result:
-            print(result)
-            print(f"Error: {step_name} failed for call ID: {self.callId}")
+            log(result)
+            log(f"Error: {step_name} failed for call ID: {self.callId}")
             return False
 
-        print(f"{step_name} completed for call ID: {self.callId}")
+        log(f"{step_name} completed for call ID: {self.callId}")
         return True
 
     def updater(expert_id: str, expert_number: str) -> None:
@@ -172,5 +182,5 @@ class Helper:
         headers = {'Content-Type': 'application/json'}
         url = GAMES_PROCESSOR_URL + '/actions/expert_scores'
         response = requests.request("POST", url, headers=headers, data=payload)
-        print("Lambda response:", response.text)
+        log(f"Lambda response: {response.text}")
         return response.text

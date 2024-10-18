@@ -66,7 +66,7 @@ class Process:
     def validate_call(self, call: Call) -> bool:
         if not call or call.status != "successful":
             return False, f"Call {self.callId} not found or not successful"
-        if call.conversationScore:
+        if call.conversationScore or call.conversationScore == 0:
             return False, f"Call {self.callId} already processed"
         if call.recording_url in ["None", "", None]:
             return False, f"Call {self.callId} has no recording"
@@ -96,7 +96,11 @@ class Process:
         call_document = call.__dict__
         computer = Compute(call_document, user_name,
                            expert_name, user.customerPersona, user_calls, expert.persona)
-        output = computer.process_call()
+        try:
+            output = computer.process_call()
+        except "Inappropriate content found":
+            self.update_call(call.callId, 0)
+            return False, f"Inappropriate content found for call {self.callId}"
 
         if not output or not output.transcript:
             return False, f"Transcript not completed for call {self.callId}"

@@ -1,9 +1,9 @@
 import json
 import awsgi
 import traceback
+from helper import log
 from model import Process
 from flask_cors import CORS
-from helper.notify import notify
 from flask import Flask, request, jsonify
 
 app = Flask(__name__)
@@ -15,14 +15,14 @@ def process_call(callId: str) -> None:
         processor = Process(callId)
         success, message = processor.process()
         if not success:
-            notify(message)
+            log(message)
             return jsonify({"message": message}), 400
         return jsonify({"message": message}), 200
     except Exception as e:
         message = f"An error occurred processing call {callId}: {str(e)}"
-        notify(message)
-        print(message)
-        print(traceback.format_exc())
+        log(message)
+        log(message)
+        log(traceback.format_exc())
         return jsonify({"message": message}), 500
 
 
@@ -37,7 +37,7 @@ def process_call_route():
 
 
 def handler(event, context):
-    print(event)
+    log(event)
     return awsgi.response(app, event, context)
 
 
