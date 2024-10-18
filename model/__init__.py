@@ -98,9 +98,11 @@ class Process:
                            expert_name, user.customerPersona, user_calls, expert.persona)
         try:
             output = computer.process_call()
-        except "Inappropriate content found":
-            self.update_call(call.callId, 0)
-            return False, f"Inappropriate content found for call {self.callId}"
+        except Exception as e:
+            if str(e) == "Inappropriate content found":
+                self.update_call(call.callId, 0)
+                return False, f"Inappropriate content found for call {self.callId}"
+            return False, f"An error occurred processing call {self.callId}: {str(e)}"
 
         if not output or not output.transcript:
             return False, f"Transcript not completed for call {self.callId}"
