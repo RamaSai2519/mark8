@@ -19,12 +19,12 @@ def log(callId: str, message: str) -> None:
     error_log: dict = errorlog_collection.find_one({"callId": callId})
     if error_log:
         logs: list = error_log.get("logs", [])
-        logs.append({"message": message, "time": current_time})
+        logs.append({"message": message, "time": datetime_now})
         errorlog_collection.update_one(
             {"callId": callId}, {"$set": {"logs": logs}})
     else:
         errorlog_collection.insert_one(
-            {"callId": callId, "logs": [{"message": message, "time": current_time}]})
+            {"callId": callId, "logs": [{"message": message, "time": datetime_now}]})
     print(current_time, message)
 
 
