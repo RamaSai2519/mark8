@@ -36,15 +36,17 @@ class Helper:
         self.user_calls_count = user_calls_count
 
     def extract_json(self, format_spec: str) -> dict:
+        def clean_json(json_str: str) -> str:
+            return json_str.replace("\n", "").replace("'", "\"").replace(" ", "").replace("```", "").replace("json", "").strip()
+
         try:
             if "json" in format_spec:
                 match = re.search(r'```json\n(.*?)```', format_spec, re.DOTALL)
                 if match:
-                    response_text = match.group(1).replace("\n", "").replace("'", "\"").replace(" ", "").strip()
+                    response_text = clean_json(match.group(1))
                     response_text = json.loads(response_text)
                     return response_text
-
-            cleaned_format_spec = format_spec.replace("\n", "").replace("'", "\"").replace(" ", "").strip()
+            cleaned_format_spec = clean_json(format_spec)
             cleaned_format_spec = json.loads(cleaned_format_spec)
             return cleaned_format_spec
         except Exception:
