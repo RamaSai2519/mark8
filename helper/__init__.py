@@ -47,17 +47,17 @@ class Helper:
                 response_text = clean_json(match.group(1))
                 try:
                     response_text = json.loads(response_text)
+                    return response_text
                 except Exception as e:
                     log(self.callId, f"Error parsing JSON response_text: {str(e)}")
                     return {}
-                return response_text
         cleaned_json_str = clean_json(json_str)
         try:
             cleaned_json_str = json.loads(cleaned_json_str)
+            return cleaned_json_str
         except Exception as e:
             log(self.callId, f"Error parsing JSON cleaned_json_str: {str(e)}")
             return {}
-        return cleaned_json_str
 
     @staticmethod
     def check_for_transcript_file(callId: str) -> bool:
