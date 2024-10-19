@@ -35,23 +35,29 @@ class Helper:
         self.audio_filename = audio_filename
         self.user_calls_count = user_calls_count
 
-    def extract_json(self, format_spec: str) -> dict:
+    def extract_json(self, json_str: str) -> dict:
         def clean_json(json_str: str) -> str:
-            return json_str.replace("\n", "").replace("'", "\"").replace(" ", "").replace("```", "").replace("json", "").strip()
+            json_str = json_str.replace("\n", "").replace("'", "\"").replace("```", "").replace("json", "").strip()
+            json_str = json.dumps(json_str)
+            return json_str
 
-        try:
-            if "json" in format_spec:
-                match = re.search(r'```json\n(.*?)```', format_spec, re.DOTALL)
-                if match:
-                    response_text = clean_json(match.group(1))
+        if "json" in json_str:
+            match = re.search(r'```json\n(.*?)```', json_str, re.DOTALL)
+            if match:
+                response_text = clean_json(match.group(1))
+                try:
                     response_text = json.loads(response_text)
-                    return response_text
-            cleaned_format_spec = clean_json(format_spec)
-            cleaned_format_spec = json.loads(cleaned_format_spec)
-            return cleaned_format_spec
-        except Exception:
-            log(self.callId, f"Error decoding JSON: {format_spec}")
+                except Exception as e:
+                    log(self.callId, f"Error parsing JSON response_text: {str(e)}")
+                    return {}
+                return response_text
+        cleaned_json_str = clean_json(json_str)
+        try:
+            cleaned_json_str = json.loads(cleaned_json_str)
+        except Exception as e:
+            log(self.callId, f"Error parsing JSON cleaned_json_str: {str(e)}")
             return {}
+        return cleaned_json_str
 
     @staticmethod
     def check_for_transcript_file(callId: str) -> bool:
