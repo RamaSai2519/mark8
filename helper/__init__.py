@@ -146,8 +146,7 @@ class Helper:
             log(self.callId, f"Error: {result.stderr}")
             return False
 
-        jq_command = [
-            'jq', '-r', '.results.utterances[] | "[Speaker:\(.speaker)] \(.transcript)"']
+        jq_command = ['jq', '-r', '.results.utterances[] | "[Speaker:\\(.speaker)] \\(.transcript)"']
         jq_result = subprocess.run(jq_command, input=result.stdout,
                                    stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         if jq_result.returncode != 0:
