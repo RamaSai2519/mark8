@@ -4,6 +4,14 @@ from interfaces import TranscriptPrompts, EvaluationPrompts, Constants
 
 class Prompts:
     @staticmethod
+    def get_json_prompt(prompt: str, output_doc: dict) -> str:
+        prompt += "\nGive me the output in a json format like this, don't change the keys:"
+        prompt += json.dumps(output_doc, indent=4)
+        prompt += "\nand make sure I will be able to store your response as a json object using the following function by not placing colons and double quotes inside the values:"
+        prompt += Constants.extract_json_function_str
+        return prompt
+
+    @staticmethod
     def get_transcript_prompts(user_name: str, expert_name: str, transcript: str) -> TranscriptPrompts:
         init_prompt = "I'll give you a call transcript between the user {user} and the sarathi {expert}. You have to correctly identify which Speaker is the User and which Speaker is the Sarathi (Generally Sarathi will be the one who ask the User questions about their routine and how they are doing. Also you can identify which speaker is Sarathi by their name). The user and sarathi connected via a website called 'Sukoon.Love', a platform for people to have conversations and seek guidance from Sarathis. Analyze the transcript and answer the questions I ask accordingly."
         init_prompt = init_prompt.format(user=user_name, expert=expert_name)
@@ -29,7 +37,9 @@ class Prompts:
         guidelines_prompt = "These are the guidelines for evaluating the call: {guidelines}. Remember these while replying to the next prompts."
         guidelines_prompt = guidelines_prompt.format(guidelines=guidelines)
 
-        score_details_prompt = """
+        xdict = {"openingGreeting": 0, "timeSplit": 0, "userSentiment": 0, "flow": 0,
+                 "timeSpent": 0, "probability": 0, "closingGreeting": 0, "explanation": ''}
+        details_prompt = """
                 Please analyze the call transcript based on the given parameters.
                 Opening Greeting(_/10)- Evaluate if the guidelines are followed.
                 Time split between Saarthi and User(_/15) - Evaluate if the guidelines are followed.
@@ -40,20 +50,21 @@ class Prompts:
                 Closing Greeting(_/10) - Evaluate if the guidelines are followed.
                 
                 Find the section relating to the parameters in the guidelines before you give a score. Higher score if the guidelines are followed. With the confidence score between 0 to 1.
-                Give me the output in a json format like this and don't add 
-                {"openingGreeting": 0,"timeSplit": 0,"userSentiment": 0,"flow": 0,"timeSpent": 0,"probability": 0,"closingGreeting": 0, "explanation": ''}
                 """
+        details_prompt = Prompts.get_json_prompt(details_prompt, xdict)
 
         score_prompt = "Give me a total score out of 100. Return only the number."
 
         prompts = {"callback_prompt": callback_prompt, "summary_prompt": summary_prompt, "feedback_prompt": feedback_prompt,
-                   "guidelines_prompt": guidelines_prompt, "score_details_prompt": score_details_prompt, "score_prompt": score_prompt}
+                   "guidelines_prompt": guidelines_prompt, "score_details_prompt": details_prompt, "score_prompt": score_prompt}
 
         return EvaluationPrompts(**prompts)
 
     @staticmethod
     def get_topics_prompt(topics: str) -> str:
-        prompt = "\n Identify the topics they are talking about from the topics above. Give me the output in a json format like this: {'topic': '', 'sub_topic': ''}"
+        example_dict = {"topic": "", "sub_topic": ""}
+        prompt = "\n Identify the topics they are talking about from the topics above."
+        prompt = Prompts.get_json_prompt(prompt, example_dict)
         return topics + prompt
 
     @staticmethod
@@ -87,9 +98,7 @@ class Prompts:
 
                 c. {person} Personality: Choose one(Sanguine/Choleric/Melancholic/Phlegmatic)
                 with the confidence score between 0 to 1,
-                Please be strict in analysing and give correct data only
-
-                Give me the output in a json format like this: 
+                Please be strict in analysing and give correct data only.
                 """
 
         if persona:
@@ -98,7 +107,6 @@ class Prompts:
         else:
             prompt = persona_prompt.format(person=person)
 
-        peronsa_dict = json.dumps(Constants.persona_dict, indent=4)
-        prompt += peronsa_dict
+        prompt = Prompts.get_json_prompt(prompt, Constants.persona_dict)
 
         return prompt
