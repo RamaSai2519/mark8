@@ -37,26 +37,22 @@ class Helper:
 
     def extract_json(self, json_str: str) -> dict:
         def clean_json(json_str: str) -> str:
-            json_str = json_str.replace("\n", "").replace("'", "\"").replace("```", "").replace("json", "").strip()
-            json_str = json.dumps(json_str)
+            json_str = json_str.replace("\n", "").replace(
+                "```", "").replace("json", "").strip()
             return json_str
 
-        if "json" in json_str:
-            match = re.search(r'```json\n(.*?)```', json_str, re.DOTALL)
-            if match:
-                response_text = clean_json(match.group(1))
-                try:
+        try:
+            if "json" in json_str:
+                match = re.search(r'```json\n(.*?)```', json_str, re.DOTALL)
+                if match:
+                    response_text = clean_json(match.group(1))
                     response_text = json.loads(response_text)
                     return response_text
-                except Exception as e:
-                    log(self.callId, f"Error parsing JSON response_text: {str(e)}")
-                    return {}
-        cleaned_json_str = clean_json(json_str)
-        try:
+            cleaned_json_str = clean_json(json_str)
             cleaned_json_str = json.loads(cleaned_json_str)
             return cleaned_json_str
         except Exception as e:
-            log(self.callId, f"Error parsing JSON cleaned_json_str: {str(e)}")
+            log(self.callId, f"JSON Error: {str(e)}")
             return {}
 
     @staticmethod

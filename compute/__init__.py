@@ -63,18 +63,43 @@ class Compute:
         guidelines = self.helper.get_guidelines()
         prompts = Prompts.get_evaluation_prompts(guidelines)
 
-        self.output.user_callback = self.chat(user, prompts.callback_prompt)
-        self.output.summary = self.chat(user, prompts.summary_prompt)
-        self.output.saarthi_feedback = self.chat(user, prompts.feedback_prompt)
+        def get_user_callback() -> str:
+            self.output.user_callback = self.chat(
+                user, prompts.callback_prompt)
+            return self.output.user_callback
 
-        score_details = self.chat(user, prompts.score_details_prompt)
-        score_details = self.helper.extract_json(score_details)
-        self.output.conversation_score_details = score_details
+        def get_summary() -> str:
+            self.output.summary = self.chat(user, prompts.summary_prompt)
+            return self.output.summary
 
-        raw_score = self.chat(user, prompts.score_prompt)
-        self.output.conversation_score = self.helper.extract_score(raw_score)
+        def get_feedback() -> str:
+            self.output.saarthi_feedback = self.chat(
+                user, prompts.feedback_prompt)
+            return self.output.saarthi_feedback
 
-        return self.output.conversation_score
+        def get_score_details() -> dict:
+            score_details = self.chat(user, prompts.score_details_prompt)
+            self.output.score_details = self.helper.extract_json(score_details)
+            return self.output.score_details
+
+        def get_score() -> float:
+            raw_score = self.chat(user, prompts.score_prompt)
+            self.output.score = self.helper.extract_score(raw_score)
+            return self.output.score
+
+        steps = [
+            {"description": "Getting callback", "method": get_user_callback},
+            {"description": "Getting summary", "method": get_summary},
+            {"description": "Getting feedback", "method": get_feedback},
+            {"description": "Getting score details", "method": get_score_details},
+            {"description": "Getting score", "method": get_score},
+        ]
+
+        for step in steps:
+            if not self.helper.run_step(step["description"], step["method"]):
+                return None
+
+        return self.output.score
 
     def identify_topics(self) -> None:
         topics_file = Helper.get_file_path("texts/topics.txt")
@@ -108,14 +133,11 @@ class Compute:
         log(self.callId, start_message)
 
         steps = [
-            {"description": "Downloading and transcribing audio",
-                "method": self.generate_transcript},
-            {"description": "Analyzing transcript",
-                "method": self.analyze_transcript},
+            {"description": "Downloading and transcribing audio", "method": self.generate_transcript},
+            {"description": "Analyzing transcript", "method": self.analyze_transcript},
             {"description": "Evaluating call", "method": self.evaluate_call},
             {"description": "Identifying topics", "method": self.identify_topics},
-            {"description": "Generating personas",
-                "method": self.generate_personas},
+            {"description": "Generating personas", "method": self.generate_personas},
         ]
 
         for step in steps:

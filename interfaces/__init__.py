@@ -77,13 +77,13 @@ class EvaluationPrompts:
 class AnalyserOutput:
     topics: Optional[dict] = None
     summary: Optional[str] = None
+    score: Optional[float] = None
     transcript: Optional[str] = None
     user_callback: Optional[str] = None
+    score_details: Optional[dict] = None
     expert_persona: Optional[dict] = None
     saarthi_feedback: Optional[str] = None
     customer_persona: Optional[dict] = None
-    conversation_score: Optional[float] = None
-    conversation_score_details: Optional[dict] = None
 
 
 @dataclass

@@ -118,17 +118,17 @@ class Process:
             "expert": str(expert._id),
             "Summary": output.summary,
             "transcript_url": transcript_url,
+            "conversationScore": output.score,
             "updatedAt": datetime.now(pytz.utc),
+            "scoreBreakup": output.score_details,
             "userCallback": output.user_callback,
             "sarathiFeedback": output.saarthi_feedback,
-            "conversationScore": output.conversation_score,
-            "scoreBreakup": output.conversation_score_details
         }
 
+        self.update_call(call.callId, output.score)
         self.update_call_meta(call.callId, meta_update)
         self.update_user(user._id, output.customer_persona)
         self.update_expert(expert._id, output.expert_persona)
-        self.update_call(call.callId, output.conversation_score)
         Helper.updater(call.callId, str(expert._id), expert.phoneNumber)
 
         finish = time.perf_counter()
