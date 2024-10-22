@@ -1,6 +1,7 @@
 import json
 import awsgi
 import traceback
+import threading
 from helper import log
 from model import Process
 from flask_cors import CORS
@@ -32,7 +33,9 @@ def process_call_route():
     if not callId:
         return jsonify({"message": "callId is required"}), 400
 
-    return process_call(callId)
+    threading.Thread(target=process_call, args=(callId,)).start()
+
+    return jsonify({"message": "Processing call"}), 200
 
 
 def handler(event, context):
