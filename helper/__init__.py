@@ -142,7 +142,8 @@ class Helper:
             log(self.callId, f"Error: {result.stderr}")
             return False
 
-        jq_command = ['jq', '-r', '.results.utterances[] | "[Speaker:\\(.speaker)] \\(.transcript)"']
+        jq_command = [
+            'jq', '-r', '.results.utterances[] | "[Speaker:\\(.speaker)] \\(.transcript)"']
         jq_result = subprocess.run(jq_command, input=result.stdout,
                                    stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         if jq_result.returncode != 0:
@@ -192,5 +193,6 @@ class Helper:
         headers = {'Content-Type': 'application/json'}
         url = GAMES_PROCESSOR_URL + '/actions/expert_scores'
         response = requests.request("POST", url, headers=headers, data=payload)
-        log(callId, f"Lambda response: {response.text}")
+        log(callId, f"Payload for main: {payload}")
+        log(callId, f"Response of main: {response.text}")
         return response.text
