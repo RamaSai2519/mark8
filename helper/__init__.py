@@ -185,14 +185,17 @@ class Helper:
         return True
 
     @staticmethod
-    def updater(callId: str, expert_id: str, expert_number: str) -> None:
-        payload = json.dumps({
-            "expert_id": expert_id,
-            "expert_number": expert_number
-        })
-        headers = {'Content-Type': 'application/json'}
+    def updater(callId: str, expert_id: str, expert_number: str, user_id: str) -> None:
+        payload = {"expert_id": expert_id, "expert_number": expert_number}
         url = GAMES_PROCESSOR_URL + '/actions/expert_scores'
-        response = requests.request("POST", url, headers=headers, data=payload)
-        log(callId, f"Payload for main: {payload}")
-        log(callId, f"Response of main: {response.text}")
+        response = requests.post(url, json=payload)
+        log(callId, f"Payload to update expert: {payload}")
+        log(callId, f"Response of expert update: {response.text}")
+
+        payload = {"user_id": user_id}
+        url = GAMES_PROCESSOR_URL + '/actions/recommend_expert'
+        response = requests.post(url, json=payload)
+        log(callId, f"Payload to update user: {payload}")
+        log(callId, f"Response of user update: {response.text}")
+
         return response.text
