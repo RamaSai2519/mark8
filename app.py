@@ -17,14 +17,13 @@ def process_call(callId: str) -> None:
         success, message = processor.process()
         if not success:
             log(callId, message)
-            return jsonify({"message": message}), 400
-        return jsonify({"message": message}), 200
+            return f"ERROR: {message}"
+        return f"SUCCESS: {message}"
     except Exception as e:
         message = f"An error occurred processing call: {str(e)}"
         log(callId, message)
         log(callId, traceback.format_exc())
-        return jsonify({"message": message}), 500
-
+        return f"ERROR: {message}"
 
 @app.route("/process", methods=["POST"])
 def process_call_route():
