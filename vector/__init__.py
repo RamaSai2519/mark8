@@ -95,7 +95,7 @@ class Embedder:
         most_similar = max(
             similarities, key=lambda x: x[1]) if similarities else None
         print(most_similar[1])
-        return most_similar[0] if most_similar and most_similar[1] > 0.97 else None
+        return most_similar[0] if most_similar and most_similar[1] > 0.96 else None
 
     def store_prompt_embedding(self, embedding: list, prompt: str) -> dict:
         doc = {"prompt": prompt}
