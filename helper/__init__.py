@@ -3,6 +3,7 @@ import re
 import pytz
 import json
 import boto3
+from pprint import pprint
 import requests
 import subprocess
 from datetime import datetime
@@ -16,15 +17,16 @@ s3_client = boto3.client(
 def log(callId: str, message: str) -> None:
     datetime_now = datetime.now(pytz.utc)
     current_time = datetime_now.strftime("%Y-%m-%d %H:%M:%S")
-    error_log: dict = errorlog_collection.find_one({"callId": callId})
+    query = {"callId": callId}
+    error_log: dict = errorlog_collection.find_one(query)
     if error_log:
         logs: list = error_log.get("logs", [])
         logs.append({"message": message, "time": datetime_now})
-        errorlog_collection.update_one(
-            {"callId": callId}, {"$set": {"logs": logs}})
+        update = {"$set": {"logs": logs}}
+        errorlog_collection.update_one(query, update)
     else:
-        errorlog_collection.insert_one(
-            {"callId": callId, "logs": [{"message": message, "time": datetime_now}]})
+        query["logs"] = [{"message": message, "time": datetime_now}]
+        errorlog_collection.insert_one(query)
     print(current_time, message)
 
 
@@ -191,13 +193,13 @@ class Helper:
         payload = {"expert_id": expert_id, "expert_number": expert_number}
         url = GAMES_PROCESSOR_URL + '/actions/expert_scores'
         response = requests.post(url, json=payload)
-        log(callId, f"Payload to update expert: {payload}")
         log(callId, f"Response of expert update: {response.text}")
+        log(callId, f"Payload to update expert: {payload}")
 
         payload = {"user_id": user_id}
         url = GAMES_PROCESSOR_URL + '/actions/recommend_expert'
         response = requests.post(url, json=payload)
-        log(callId, f"Payload to update user: {payload}")
         log(callId, f"Response of user update: {response.text}")
+        log(callId, f"Payload to update user: {payload}")
 
         return response.text

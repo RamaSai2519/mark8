@@ -50,7 +50,7 @@ class Embedder:
                 embedding = self.compute_embedding(chunk)
                 embeddings.append(embedding)
 
-            combined_embedding = np.mean(embeddings, axis=0)
+            combined_embedding = np.mean(embeddings, axis=0).tolist()
             return combined_embedding
         else:
             return self.compute_embedding(transcript)
@@ -94,6 +94,7 @@ class Embedder:
 
         most_similar = max(
             similarities, key=lambda x: x[1]) if similarities else None
+        print(most_similar[1])
         return most_similar[0] if most_similar and most_similar[1] > 0.97 else None
 
     def store_prompt_embedding(self, embedding: list, prompt: str) -> dict:

@@ -74,7 +74,7 @@ class Compute:
 
         analysis_result = self.chat(user, prompts.analysis_prompt)
 
-        if "All good" in analysis_result:
+        if "all good" in analysis_result.lower():
             return True
         log(self.callId, "Inappropriate content found")
         log(self.callId, f"Analysis result: {analysis_result}")
@@ -148,11 +148,16 @@ class Compute:
             expert_persona = self.chat(user, prompt)
             self.output.expert_persona = self.helper.extract_json(
                 expert_persona)
+            return self.output.expert_persona
 
         steps = [
             self.create_step("Generating user persona", get_user_persona),
             self.create_step("Generating expert persona", get_expert_persona),
         ]
+
+        for step in steps:
+            if not self.helper.run_step(step["description"], step["method"]):
+                return None
 
         return self.output.customer_persona
 
