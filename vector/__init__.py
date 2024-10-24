@@ -1,56 +1,70 @@
-import hashlib
 import numpy as np
-from openai import AzureOpenAI
-from pymongo.collection import Collection
+from client import ADA_Client
+from config import call_prompts_collection, transcripts_collection, constants_collection
+
 
 class Embedder:
-    def __init__(self, ada_client: AzureOpenAI) -> None:
-        self.ada_client = ada_client
+    def __init__(self) -> None:
+        self.collection = call_prompts_collection
+        self.ada_client = ADA_Client().get_ada_client()
 
-    def generate_embedding(self, text: str) -> list:
-        """Generates an embedding for the given text using the ADA model."""
-        response = self.ada_client.embeddings.create(model="ada-002", input=text)
-        return response['data'][0]['embedding']
+    def compute_embedding(self, text: str) -> list:
+        response = self.ada_client.embeddings.create(
+            model="text-embedding-ada-002", input=text)
+        return response.data[0].embedding
 
-    def store_embedding(self, collection: Collection, embedding: list, doc: dict) -> None:
-        """Stores the embedding in the specified collection along with the related document."""
-        collection.insert_one({
-            "embedding": embedding,
-            "data": doc
-        })
+    def store_embedding(self, prompt: str, embedding: list, response) -> None:
+        document = {"embedding": embedding, "prompt": prompt}
+        document['response'] = response
+        self.collection.insert_one(document)
 
-    def get_similar_embedding(self, collection: Collection, query_embedding: list, threshold=0.85) -> dict | None:
-        """Retrieves a document from the collection that has an embedding similar to the query embedding."""
-        # This is a simple placeholder method that retrieves documents based on a text search.
-        # In practice, you should use cosine similarity or vector-based search optimized for embeddings.
+    def get_most_similar_prompt(self, embedding: list, prompt: str) -> dict:
+        query = {"prompt": prompt}
+        all_embeddings = list(self.collection.find(query))
+        if not all_embeddings:
+            return None
 
-        all_docs = collection.find()
-        for doc in all_docs:
-            stored_embedding = doc.get('embedding')
-            if stored_embedding:
-                similarity = self.calculate_cosine_similarity(
-                    query_embedding, stored_embedding)
-                if similarity >= threshold:
-                    return doc["data"]
-        return None
+        similarities = []
+        for entry in all_embeddings:
+            stored_embedding = entry['embedding']
+            similarity = np.dot(embedding, stored_embedding) / \
+                (np.linalg.norm(embedding) * np.linalg.norm(stored_embedding))
+            similarities.append((entry, similarity))
 
-    def calculate_cosine_similarity(self, embedding1: list, embedding2: list) -> float:
-        """Calculates cosine similarity between two embeddings."""
-        # Convert lists to numpy arrays for cosine similarity computation
-        embedding1 = np.array(embedding1)
-        embedding2 = np.array(embedding2)
+        most_similar = max(
+            similarities, key=lambda x: x[1]) if similarities else None
+        return most_similar[0] if most_similar and most_similar[1] > 0.97 else None
 
-        dot_product = np.dot(embedding1, embedding2)
-        norm1 = np.linalg.norm(embedding1)
-        norm2 = np.linalg.norm(embedding2)
-        
-        return dot_product / (norm1 * norm2)
+    def store_transcript_embedding(self, embedding: list, transcript: str) -> dict:
+        transcript_hash = hash(transcript)
+        doc = {"hash": transcript_hash}
+        doc["embedding"] = embedding
+        result = transcripts_collection.insert_one(doc)
+        doc["_id"] = result.inserted_id
+        return doc
 
-    def combine_embeddings(self, embedding1: list, embedding2: list) -> list:
-        """Combines two embeddings into a single embedding by averaging them."""
-        combined_embedding = np.mean([embedding1, embedding2], axis=0)
-        return combined_embedding.tolist()
+    def store_prompt_embedding(self, embedding: list, prompt: str) -> dict:
+        doc = {"prompt": prompt}
+        doc["embedding"] = embedding
+        result = constants_collection.insert_one(doc)
+        doc["_id"] = result.inserted_id
+        return doc
 
-    def generate_transcript_hash(self, transcript: str) -> str:
-        """Generates a unique hash for the given transcript."""
-        return hashlib.sha256(transcript.encode()).hexdigest()
+    def get_transcript_embedding(self, transcript: str) -> list:
+        transcript_hash = hash(transcript)
+        query = {"hash": transcript_hash}
+        doc: dict = transcripts_collection.find_one(query)
+        if doc and "embedding" in doc:
+            return doc.get("embedding")
+        embedding = self.compute_embedding(transcript)
+        self.store_transcript_embedding(embedding, transcript)
+        return embedding
+
+    def get_prompt_embedding(self, prompt: str) -> list:
+        query = {"prompt": prompt}
+        doc: dict = constants_collection.find_one(query)
+        if doc and "embedding" in doc:
+            return doc.get("embedding")
+        embedding = self.compute_embedding(prompt)
+        self.store_prompt_embedding(embedding, prompt)
+        return embedding

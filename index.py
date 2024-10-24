@@ -19,12 +19,14 @@ while True:
         call = Call(**call_doc)
         valid, message = Processor.validate_call(call)
         if valid:
+            if call.conversationScore or call.conversationScore == 0:
+                continue
             apt_calls.append(call)
 
     pprint(apt_calls)
     print(f"Processing {len(apt_calls)} calls")
     for call in apt_calls:
-        payload = {"callId": call.callId}
+        payload = {"callId": call.callId, "canWait": True}
         print(f"Requesting processing for: {call.callId}")
         response = requests.post("http://localhost:8080/process", json=payload)
         print(response.json())

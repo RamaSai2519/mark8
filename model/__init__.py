@@ -68,8 +68,6 @@ class Process:
     def validate_call(self, call: Call) -> bool:
         if not call or call.status != "successful":
             return False, f"Call {self.callId} not found or not successful"
-        if call.conversationScore or call.conversationScore == 0:
-            return False, f"Call {self.callId} already processed"
         if call.recording_url in ["None", "", None]:
             return False, f"Call {self.callId} has no recording"
         duration = Helper.duration_str_to_seconds(call.duration)

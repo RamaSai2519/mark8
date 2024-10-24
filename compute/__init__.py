@@ -1,11 +1,14 @@
 import time
+import numpy as np
+from vector import Embedder
+from client import GPT_Client
 from helper import Helper, log
+from openai import RateLimitError
 from helper.prompts import Prompts
-from openai import AzureOpenAI, RateLimitError
 from interfaces import AnalyserOutput, Constants
-from config import GPT_ENDPOINT, GPT_API_KEY, GPT_VERSION, ADA_API_KEY, ADA_VERSION, ADA_ENDPOINT
 
 user = Constants.user
+assistant = Constants.assistant
 
 
 class Compute:
@@ -19,19 +22,16 @@ class Compute:
         self.user_calls_count = user_calls_count
         self.audio_filename = f"{self.callId}.mp3"
 
-        self.gpt_client = AzureOpenAI(
-            azure_endpoint=GPT_ENDPOINT, api_key=GPT_API_KEY, api_version=GPT_VERSION)
-        self.ada_client = AzureOpenAI(
-            azure_endpoint=ADA_ENDPOINT, api_key=ADA_API_KEY, api_version=ADA_VERSION)
-        self.helper = Helper(
-            self.callId, self.audio_filename, call_document["recording_url"], user_calls_count)
+        self.embedder = Embedder()
+        self.gpt_client = GPT_Client().get_gpt_client()
+        self.helper = Helper(self.callId, self.audio_filename,
+                             call_document["recording_url"], user_calls_count)
         self.output = AnalyserOutput()
+        self.transcript_embedding = None
         self.message_history = [
             {"role": "system", "content": "You are a helpful assistant."}]
 
-    def chat(self, role, content) -> str | None:
-        self.message_history.append({"role": role, "content": content})
-
+    def get_gpt_response(self) -> str:
         try:
             response = self.gpt_client.chat.completions.create(
                 model="gpt-4-turbo", messages=self.message_history)
@@ -39,17 +39,38 @@ class Compute:
             time.sleep(5)
             response = self.gpt_client.chat.completions.create(
                 model="gpt-4-turbo", messages=self.message_history)
-
         assistant_response = response.choices[0].message.content
-        self.message_history.append(
-            {"role": "assistant", "content": assistant_response})
         return assistant_response
+
+    def update_history(self, role: str, content: str) -> None:
+        self.message_history.append({"role": role, "content": content})
+        return self.message_history
+
+    def chat(self, role: str, content: str, contexter: bool = False) -> str | None:
+        self.update_history(role, content)
+        if contexter:
+            response = self.get_gpt_response()
+            self.update_history(assistant, response)
+            return response
+        prompt_embedding = self.embedder.get_prompt_embedding(content)
+        embeddings = [self.transcript_embedding, prompt_embedding]
+        concated_embedding = np.concatenate(embeddings).tolist()
+        similar_entry = self.embedder.get_most_similar_prompt(
+            concated_embedding, content)
+        if similar_entry:
+            self.update_history(assistant, similar_entry["response"])
+            return similar_entry["response"]
+
+        response = self.get_gpt_response()
+        self.embedder.store_embedding(content, concated_embedding, response)
+        self.update_history(assistant, response)
+        return response
 
     def analyze_transcript(self) -> bool:
         prompts = Prompts.get_transcript_prompts(
             self.user_name, self.expert_name, self.output.transcript)
-        self.chat(user, prompts.init_prompt)
-        self.chat(user, prompts.transcript_prompt)
+        self.chat(user, prompts.init_prompt, True)
+        self.chat(user, prompts.transcript_prompt, True)
 
         analysis_result = self.chat(user, prompts.analysis_prompt)
 
@@ -58,6 +79,9 @@ class Compute:
         log(self.callId, "Inappropriate content found")
         log(self.callId, f"Analysis result: {analysis_result}")
         raise Exception("Inappropriate content found")
+
+    def create_step(self, description: str, method: callable) -> dict:
+        return {"description": description, "method": method}
 
     def evaluate_call(self) -> None:
         guidelines = self.helper.get_guidelines()
@@ -88,11 +112,11 @@ class Compute:
             return self.output.score
 
         steps = [
-            {"description": "Getting callback", "method": get_user_callback},
-            {"description": "Getting summary", "method": get_summary},
-            {"description": "Getting feedback", "method": get_feedback},
-            {"description": "Getting score details", "method": get_score_details},
-            {"description": "Getting score", "method": get_score},
+            self.create_step("Getting callback", get_user_callback),
+            self.create_step("Getting summary", get_summary),
+            self.create_step("Getting feedback", get_feedback),
+            self.create_step("Getting score details", get_score_details),
+            self.create_step("Getting score", get_score),
         ]
 
         for step in steps:
@@ -111,19 +135,31 @@ class Compute:
         return self.output.topics
 
     def generate_personas(self) -> None:
-        prompt = Prompts.get_persona_prompt(self.old_user_persona)
-        customer_persona = self.chat(user, prompt)
-        self.output.customer_persona = self.helper.extract_json(
-            customer_persona)
+        def get_user_persona() -> str:
+            prompt = Prompts.get_persona_prompt(self.old_user_persona)
+            customer_persona = self.chat(user, prompt)
+            self.output.customer_persona = self.helper.extract_json(
+                customer_persona)
+            return self.output.customer_persona
 
-        prompt = Prompts.get_persona_prompt(self.old_expert_persona, "sarathi")
-        expert_persona = self.chat(user, prompt)
-        self.output.expert_persona = self.helper.extract_json(expert_persona)
+        def get_expert_persona() -> str:
+            prompt = Prompts.get_persona_prompt(
+                self.old_expert_persona, "sarathi")
+            expert_persona = self.chat(user, prompt)
+            self.output.expert_persona = self.helper.extract_json(
+                expert_persona)
+
+        steps = [
+            self.create_step("Generating user persona", get_user_persona),
+            self.create_step("Generating expert persona", get_expert_persona),
+        ]
 
         return self.output.customer_persona
 
     def generate_transcript(self) -> str:
         self.output.transcript = self.helper.download_and_transcribe_audio()
+        self.transcript_embedding = self.embedder.get_transcript_embedding(
+            self.output.transcript)
         return self.output.transcript
 
     def process_call(self) -> AnalyserOutput | None:
@@ -133,11 +169,11 @@ class Compute:
         log(self.callId, start_message)
 
         steps = [
-            {"description": "Downloading and transcribing audio", "method": self.generate_transcript},
-            {"description": "Analyzing transcript", "method": self.analyze_transcript},
-            {"description": "Evaluating call", "method": self.evaluate_call},
-            {"description": "Identifying topics", "method": self.identify_topics},
-            {"description": "Generating personas", "method": self.generate_personas},
+            self.create_step("Audio to Text", self.generate_transcript),
+            self.create_step("Analyzing transcript", self.analyze_transcript),
+            self.create_step("Evaluating call", self.evaluate_call),
+            self.create_step("Identifying topics", self.identify_topics),
+            self.create_step("Generating personas", self.generate_personas),
         ]
 
         for step in steps:

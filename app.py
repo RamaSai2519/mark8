@@ -1,5 +1,4 @@
 import json
-import awsgi
 import traceback
 import threading
 from helper import log
@@ -25,20 +24,20 @@ def process_call(callId: str) -> None:
         log(callId, traceback.format_exc())
         return f"ERROR: {message}"
 
+
 @app.route("/process", methods=["POST"])
 def process_call_route():
+    print("Processing call")
     input = json.loads(request.get_data())
     callId = input.get("callId", None)
+    can_wait = input.get("canWait", False)
     if not callId:
         return jsonify({"message": "callId is required"}), 400
-
+    if can_wait:
+        message = process_call(callId)
+        return jsonify({"message": message}), 200
     threading.Thread(target=process_call, args=(callId,)).start()
-
     return jsonify({"message": "Processing call"}), 200
-
-
-def handler(event, context):
-    return awsgi.response(app, event, context)
 
 
 if __name__ == "__main__":

@@ -6,6 +6,7 @@ from bson import ObjectId
 
 class Constants:
     user = "user"
+    assistant = "assistant"
     persona_dict = {
         "demographics": {
             "gender": "",
