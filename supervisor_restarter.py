@@ -37,7 +37,7 @@ def kill_process_on_port(port):
 
 if __name__ == "__main__":
     stop_all_supervisors()
-    kill_process_on_port(8080)
+    kill_process_on_port('8080')
     start_supervisor_process("mark")
     time.sleep(5)
     start_supervisor_process("markb")
