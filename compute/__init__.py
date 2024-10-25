@@ -72,7 +72,7 @@ class Compute:
         self.chat(user, prompts.init_prompt, True)
         self.chat(user, prompts.transcript_prompt, True)
 
-        analysis_result = self.chat(user, prompts.analysis_prompt)
+        analysis_result = self.chat(user, prompts.analysis_prompt, True)
 
         if "all good" in analysis_result.lower():
             return True
