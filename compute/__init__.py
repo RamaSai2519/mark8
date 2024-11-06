@@ -87,6 +87,9 @@ class Compute:
         guidelines = self.helper.get_guidelines()
         prompts = Prompts.get_evaluation_prompts(guidelines)
 
+        def give_guidelines() -> str:
+            return self.chat(user, prompts.guidelines_prompt)
+
         def get_user_callback() -> str:
             self.output.user_callback = self.chat(
                 user, prompts.callback_prompt)
@@ -112,6 +115,7 @@ class Compute:
             return self.output.score
 
         steps = [
+            self.create_step("Giving guidelines", give_guidelines),
             self.create_step("Getting callback", get_user_callback),
             self.create_step("Getting summary", get_summary),
             self.create_step("Getting feedback", get_feedback),

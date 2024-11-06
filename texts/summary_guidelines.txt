@@ -1,0 +1,85 @@
+### Conversation summary guidelines
+
+Write a summary that includes key themes, main topics discussed and the general tone of the conversation, such as collaborative, instructive, or problem-solving with confidence score between 0-1
+Look for recurring themes, important topics, or critical points made by the participants in the call
+Note any significant questions, answers, or solutions discussed.
+Highlight key statements or phrases that encapsulate major ideas or topics of discussion
+Preserve the tone and intent of the conversation, whether it was formal, informal, supportive, etc. Choose tone from below list
+Separately call out each of these:
+The date and time planned for the next call
+Any unacceptable / untoward language, words, tone was used during the call
+If contact information is getting exchanged between call participants
+If there was any inappropriate topic discussed - sexual connotations
+
+Tone list:
+The tone of a conversation reflects the attitude, emotion, or intent conveyed by the speakers. Here are some common types of conversational tones:
+1. Formal
+Characteristics: Professional, respectful, and structured.
+Use: Often found in business meetings, official discussions, or interactions requiring decorum.
+Examples: "We would like to address the following agenda items..."
+2. Informal
+Characteristics: Casual, relaxed, and conversational.
+Use: Common in friendly or everyday interactions, such as conversations with family, friends, or close colleagues.
+Examples: "Hey, let’s catch up on that later!"
+3. Supportive
+Characteristics: Compassionate, empathetic, and encouraging.
+Use: Seen in conversations where emotional support or reassurance is offered, such as counseling or friendship.
+Examples: "I understand what you’re going through, and I’m here for you."
+4. Advisory
+Characteristics: Helpful, instructive, and guiding.
+Use: Used when giving advice, guidance, or recommendations.
+Examples: "You might want to consider updating your resume with these skills."
+5. Inquisitive
+Characteristics: Curious, questioning, and seeking information.
+Use: Common in interviews, research, or when seeking clarification.
+Examples: "Could you tell me more about how that process works?"
+6. Encouraging
+Characteristics: Motivating, optimistic, and uplifting.
+Use: Often used to inspire or boost someone’s confidence, such as in mentorship or coaching.
+Examples: "You’re doing great—keep up the good work!"
+7. Directive
+Characteristics: Authoritative, instructive, and goal-oriented.
+Use: Often found in leadership, management, or instructional settings.
+Examples: "Please complete the report by tomorrow morning."
+8. Persuasive
+Characteristics: Convincing, assertive, and often passionate.
+Use: Used in sales, marketing, debates, or when influencing decisions.
+Examples: "This solution could really benefit your team and improve productivity."
+9. Collaborative
+Characteristics: Cooperative, open, and team-oriented.
+Use: Seen in group discussions or brainstorming sessions.
+Examples: "Let’s put our ideas together and see what we come up with."
+10. Reflective
+Characteristics: Thoughtful, introspective, and often philosophical.
+Use: Used in conversations focusing on self-awareness, learning, or personal growth.
+Examples: "Looking back, I think this experience taught me a lot about patience."
+11. Sympathetic
+Characteristics: Understanding, caring, and comforting.
+Use: Found in situations where someone is expressing empathy towards another's hardship or loss.
+Examples: "I’m so sorry to hear that. That must be incredibly tough for you."
+12. Optimistic
+Characteristics: Positive, hopeful, and uplifting.
+Use: Common in discussions focused on future plans or possibilities.
+Examples: "I’m confident things will turn around soon!"
+13. Serious
+Characteristics: Grave, solemn, and focused.
+Use: Used in discussions involving important or sensitive topics.
+Examples: "This is a critical issue, and we need to address it immediately."
+14. Humorous
+Characteristics: Lighthearted, playful, and often funny.
+Use: Used in friendly interactions to lighten the mood.
+Examples: "Well, I guess that’s one way to get the job done—if you’re a superhero!"
+15. Skeptical
+Characteristics: Questioning, doubtful, and sometimes critical.
+Use: Found in conversations where someone is questioning the validity of a point.
+Examples: "I’m not sure that approach will work. Can you explain how it would solve the issue?"
+16. Impatient
+Characteristics: Urgent, curt, and sometimes frustrated.
+Use: Appears when someone is eager for quick results or action.
+Examples: "Can we please get to the point? Time is running out."
+17. Neutral
+Characteristics: Unbiased, factual, and objective.
+Use: Used in situations requiring a lack of emotional involvement, such as reporting or moderating.
+Examples: "The results show an increase in sales over the past quarter."
+
+

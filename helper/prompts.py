@@ -28,14 +28,14 @@ class Prompts:
 
     @staticmethod
     def get_evaluation_prompts(guidelines: str) -> EvaluationPrompts:
+        guidelines_prompt = "These are the guidelines for evaluating the call: {guidelines}. Remember these while replying to the next prompts."
+        guidelines_prompt = guidelines_prompt.format(guidelines=guidelines)
+
         callback_prompt = "Calculate probability of the user calling back only on the basis of the transcript given to you. Give the reason also."
 
         summary_prompt = "Summarize the transcript with a confidence score between 0 to 1."
 
         feedback_prompt = "Give me feedback for the sarathi or the expert with a confidence score between 0 to 1."
-
-        guidelines_prompt = "These are the guidelines for evaluating the call: {guidelines}. Remember these while replying to the next prompts."
-        guidelines_prompt = guidelines_prompt.format(guidelines=guidelines)
 
         xdict = {"openingGreeting": 0, "timeSplit": 0, "userSentiment": 0, "flow": 0,
                  "timeSpent": 0, "probability": 0, "closingGreeting": 0, "explanation": ''}

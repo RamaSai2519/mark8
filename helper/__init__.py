@@ -166,6 +166,11 @@ class Helper:
         else:
             with open("texts/guidelines2.txt", "r", encoding="utf-8") as file:
                 guidelines = file.read()
+
+        with open("texts/summary_guidelines.txt", "r", encoding="utf-8") as file:
+            summary_guidelines = file.read()
+
+        guidelines += "\n\n Here are the guidelines for the summary: \n" + summary_guidelines  
         return guidelines
 
     def extract_score(self, score_str: str) -> float | int:
