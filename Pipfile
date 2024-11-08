@@ -12,11 +12,11 @@ openai = "*"
 pymongo = "*"
 requests = "*"
 aws-wsgi = "*"
-flask-cors = "*"
 gunicorn = "*"
 tiktoken = "*"
+flask-cors = "*"
 
 [dev-packages]
 
 [requires]
-python_version = "3.12"
+python_version = "3.13"
