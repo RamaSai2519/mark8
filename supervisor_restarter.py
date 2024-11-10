@@ -35,9 +35,20 @@ def kill_process_on_port(port):
         print(f"An error occurred: {e.stderr.decode()}")
 
 
+def tail_log_file(log_type='out'):
+    log_file = f'/var/log/mark.{log_type}.log'
+    try:
+        result = subprocess.run(['tail', '-f', log_file, '--lines=100'],
+                                check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        print(result.stdout.decode())
+    except subprocess.CalledProcessError as e:
+        print(f"An error occurred: {e.stderr.decode()}")
+
+
 if __name__ == "__main__":
     stop_all_supervisors()
     kill_process_on_port('8080')
     start_supervisor_process("mark")
     time.sleep(5)
     start_supervisor_process("markb")
+    tail_log_file()
