@@ -9,10 +9,6 @@ def run_subprocess(command):
         print(result.stdout.decode())
     except subprocess.CalledProcessError as e:
         print(f"CalledProcessError occurred: {e.stderr.decode()}")
-    except OSError as e:
-        print(f"OSError occurred: {e.strerror}")
-    except Exception as e:
-        print(f"An unexpected error occurred: {str(e)}")
 
 
 def stop_all_supervisors():
@@ -35,10 +31,6 @@ def kill_process_on_port(port):
             print(f"No process found running on port {port}")
     except subprocess.CalledProcessError as e:
         print(f"An error occurred: {e.stderr.decode()}")
-    except OSError as e:
-        print(f"OSError occurred: {e.strerror}")
-    except Exception as e:
-        print(f"An unexpected error occurred: {str(e)}")
 
 
 def tail_log_file(log_type='out'):
