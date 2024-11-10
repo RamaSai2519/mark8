@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 from typing import Optional, List
+from pydantic import BaseModel
 from datetime import datetime
 from bson import ObjectId
 
@@ -7,53 +8,18 @@ from bson import ObjectId
 class Constants:
     user = "user"
     assistant = "assistant"
-    persona_dict = {
-        "demographics": {
-            "gender": "",
-            "ethnicity": "",
-            "education": "",
-            "maritalStatus": "",
-            "income": "",
-            "livingStatus": "",
-            "medicalHistory": "",
-            "location": "",
-            "techComfort": "",
-            "standardOfLiving": "",
-            "familyMembers": "",
-            "workStatus": "",
-            "lastCompany": "",
-            "languagePreference": "",
-            "physicalState": ""
-        },
-        "psychographics": {
-            "needs": "",
-            "values": "",
-            "painPoints": "",
-            "motivators": ""
-        },
-        "personality": ""
-    }
 
-    extract_json_function_str = r"""```python
-    def extract_json(json_str: str) -> dict:
-        def clean_json(json_str: str) -> str:
-            json_str = json_str.replace("\n", "").replace("```", "").replace("json", "").strip()
-            return json_str
 
-        try:
-            if "json" in json_str:
-                match = re.search(r'```json\n(.*?)```', json_str, re.DOTALL)
-                if match:
-                    response_text = clean_json(match.group(1))
-                    response_text = json.loads(response_text)
-                    return response_text
-            cleaned_json_str = clean_json(json_str)
-            cleaned_json_str = json.loads(cleaned_json_str)
-            return cleaned_json_str
-        except Exception as e:
-            print(e)
-            return json_str
-    ```"""
+@dataclass
+class JsonPrompts:
+    prompt: str
+    rformat: Optional[BaseModel] = None
+
+
+@dataclass
+class Step:
+    description: str
+    method: callable
 
 
 @dataclass
@@ -70,7 +36,7 @@ class EvaluationPrompts:
     callback_prompt: str
     feedback_prompt: str
     guidelines_prompt: str
-    score_details_prompt: str
+    score_details_prompt: JsonPrompts
 
 
 @dataclass

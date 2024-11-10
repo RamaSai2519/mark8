@@ -1,3 +1,4 @@
+import json
 import time
 import numpy as np
 from vector import Embedder
@@ -5,7 +6,7 @@ from client import GPT_Client
 from helper import Helper, log
 from openai import RateLimitError
 from helper.prompts import Prompts
-from interfaces import AnalyserOutput, Constants
+from interfaces import AnalyserOutput, Constants, JsonPrompts, Step
 
 user = Constants.user
 assistant = Constants.assistant
@@ -31,14 +32,20 @@ class Compute:
         self.message_history = [
             {"role": "system", "content": "You are a helpful assistant."}]
 
-    def get_gpt_response(self) -> str:
-        try:
-            response = self.gpt_client.chat.completions.create(
-                model="gpt-4-turbo", messages=self.message_history)
-        except RateLimitError:
-            time.sleep(5)
-            response = self.gpt_client.chat.completions.create(
-                model="gpt-4-turbo", messages=self.message_history)
+    def get_gpt_response(self, format: dict = None) -> str:
+        response = self.gpt_client
+        while True:
+            try:
+                if format:
+                    response = response.beta.chat.completions.parse(
+                        model="gpt-4-turbo", messages=self.message_history, response_format=format)
+                else:
+                    response = response.chat.completions.create(
+                        model="gpt-4-turbo", messages=self.message_history)
+                break
+            except RateLimitError:
+                time.sleep(5)
+
         assistant_response = response.choices[0].message.content
         return assistant_response
 
@@ -46,10 +53,14 @@ class Compute:
         self.message_history.append({"role": role, "content": content})
         return self.message_history
 
-    def chat(self, role: str, content: str, contexter: bool = False) -> str | None:
+    def chat(self, content: str | JsonPrompts, contexter: bool = False, role: str = user) -> str | None:
+        res_format = None
+        if isinstance(content, JsonPrompts):
+            content, res_format = content.prompt, content.rformat
+
         self.update_history(role, content)
         if contexter:
-            response = self.get_gpt_response()
+            response = self.get_gpt_response(res_format)
             self.update_history(assistant, response)
             return response
         prompt_embedding = self.embedder.get_prompt_embedding(content)
@@ -61,7 +72,7 @@ class Compute:
             self.update_history(assistant, similar_entry["response"])
             return similar_entry["response"]
 
-        response = self.get_gpt_response()
+        response = self.get_gpt_response(res_format)
         self.embedder.store_embedding(content, concated_embedding, response)
         self.update_history(assistant, response)
         return response
@@ -69,10 +80,10 @@ class Compute:
     def analyze_transcript(self) -> bool:
         prompts = Prompts.get_transcript_prompts(
             self.user_name, self.expert_name, self.output.transcript)
-        self.chat(user, prompts.init_prompt, True)
-        self.chat(user, prompts.transcript_prompt, True)
+        self.chat(prompts.init_prompt, True)
+        self.chat(prompts.transcript_prompt, True)
 
-        analysis_result = self.chat(user, prompts.analysis_prompt, True)
+        analysis_result = self.chat(prompts.analysis_prompt, True)
 
         if "all good" in analysis_result.lower():
             return True
@@ -81,40 +92,38 @@ class Compute:
         raise Exception("Inappropriate content found")
 
     def create_step(self, description: str, method: callable) -> dict:
-        return {"description": description, "method": method}
+        return Step(description, method)
 
     def evaluate_call(self) -> None:
         guidelines = self.helper.get_guidelines()
         prompts = Prompts.get_evaluation_prompts(guidelines)
 
         def give_guidelines() -> str:
-            return self.chat(user, prompts.guidelines_prompt)
+            return self.chat(prompts.guidelines_prompt)
 
         def get_user_callback() -> str:
-            self.output.user_callback = self.chat(
-                user, prompts.callback_prompt)
+            self.output.user_callback = self.chat(prompts.callback_prompt)
             return self.output.user_callback
 
         def get_summary() -> str:
-            self.output.summary = self.chat(user, prompts.summary_prompt)
+            self.output.summary = self.chat(prompts.summary_prompt)
             return self.output.summary
 
         def get_feedback() -> str:
-            self.output.saarthi_feedback = self.chat(
-                user, prompts.feedback_prompt)
+            self.output.saarthi_feedback = self.chat(prompts.feedback_prompt)
             return self.output.saarthi_feedback
 
         def get_score_details() -> dict:
-            score_details = self.chat(user, prompts.score_details_prompt)
-            self.output.score_details = self.helper.extract_json(score_details)
+            score_details = self.chat(prompts.score_details_prompt)
+            self.output.score_details = json.loads(score_details)
             return self.output.score_details
 
         def get_score() -> float:
-            raw_score = self.chat(user, prompts.score_prompt)
+            raw_score = self.chat(prompts.score_prompt)
             self.output.score = self.helper.extract_score(raw_score)
             return self.output.score
 
-        steps = [
+        steps: list[Step] = [
             self.create_step("Giving guidelines", give_guidelines),
             self.create_step("Getting callback", get_user_callback),
             self.create_step("Getting summary", get_summary),
@@ -124,7 +133,7 @@ class Compute:
         ]
 
         for step in steps:
-            if not self.helper.run_step(step["description"], step["method"]):
+            if not self.helper.run_step(step.description, step.method):
                 return None
 
         return self.output.score
@@ -134,33 +143,32 @@ class Compute:
         with open(topics_file, "r", encoding="utf-8") as file:
             topics = file.read()
         prompt = Prompts.get_topics_prompt(topics)
-        topics = self.chat(user, prompt)
-        self.output.topics = self.helper.extract_json(topics)
+        topics = self.chat(prompt)
+
+        self.output.topics = json.loads(topics)['topics']
         return self.output.topics
 
     def generate_personas(self) -> None:
         def get_user_persona() -> str:
             prompt = Prompts.get_persona_prompt(self.old_user_persona)
-            customer_persona = self.chat(user, prompt)
-            self.output.customer_persona = self.helper.extract_json(
-                customer_persona)
+            customer_persona = self.chat(prompt)
+            self.output.customer_persona = json.loads(customer_persona)
             return self.output.customer_persona
 
         def get_expert_persona() -> str:
             prompt = Prompts.get_persona_prompt(
                 self.old_expert_persona, "sarathi")
-            expert_persona = self.chat(user, prompt)
-            self.output.expert_persona = self.helper.extract_json(
-                expert_persona)
+            expert_persona = self.chat(prompt)
+            self.output.expert_persona = json.loads(expert_persona)
             return self.output.expert_persona
 
-        steps = [
+        steps: list[Step] = [
             self.create_step("Generating user persona", get_user_persona),
             self.create_step("Generating expert persona", get_expert_persona),
         ]
 
         for step in steps:
-            if not self.helper.run_step(step["description"], step["method"]):
+            if not self.helper.run_step(step.description, step.method):
                 return None
 
         return self.output.customer_persona
@@ -177,7 +185,7 @@ class Compute:
             callId=self.callId, user_name=self.user_name, expert_name=self.expert_name)
         log(self.callId, start_message)
 
-        steps = [
+        steps: list[Step] = [
             self.create_step("Audio to Text", self.generate_transcript),
             self.create_step("Analyzing transcript", self.analyze_transcript),
             self.create_step("Evaluating call", self.evaluate_call),
@@ -186,7 +194,7 @@ class Compute:
         ]
 
         for step in steps:
-            if not self.helper.run_step(step["description"], step["method"]):
+            if not self.helper.run_step(step.description, step.method):
                 return None
 
         return self.output

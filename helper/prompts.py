@@ -1,16 +1,8 @@
-import json
-from interfaces import TranscriptPrompts, EvaluationPrompts, Constants
+from schemas import ScoreDetails, Topics, Persona
+from interfaces import TranscriptPrompts, EvaluationPrompts, JsonPrompts
 
 
 class Prompts:
-    @staticmethod
-    def get_json_prompt(prompt: str, output_doc: dict) -> str:
-        prompt += "\nGive me the output in a json format like this, don't change the keys:"
-        prompt += json.dumps(output_doc, indent=4)
-        prompt += "\nand make sure I will be able to store your response as a json object using the following function by not placing colons and double quotes inside the values:"
-        prompt += Constants.extract_json_function_str
-        return prompt
-
     @staticmethod
     def get_transcript_prompts(user_name: str, expert_name: str, transcript: str) -> TranscriptPrompts:
         init_prompt = "I'll give you a call transcript between the user {user} and the sarathi {expert}. You have to correctly identify which Speaker is the User and which Speaker is the Sarathi (Generally Sarathi will be the one who ask the User questions about their routine and how they are doing. Also you can identify which speaker is Sarathi by their name). The user and sarathi connected via a website called 'Sukoon.Love', a platform for people to have conversations and seek guidance from Sarathis. Analyze the transcript and answer the questions I ask accordingly."
@@ -37,8 +29,6 @@ class Prompts:
 
         feedback_prompt = "Give me feedback for the sarathi or the expert with a confidence score between 0 to 1."
 
-        xdict = {"openingGreeting": 0, "timeSplit": 0, "userSentiment": 0, "flow": 0,
-                 "timeSpent": 0, "probability": 0, "closingGreeting": 0, "explanation": ''}
         details_prompt = """
                 Please analyze the call transcript based on the given parameters.
                 Opening Greeting(_/10)- Evaluate if the guidelines are followed.
@@ -51,7 +41,7 @@ class Prompts:
                 
                 Find the section relating to the parameters in the guidelines before you give a score. Higher score if the guidelines are followed. With the confidence score between 0 to 1.
                 """
-        details_prompt = Prompts.get_json_prompt(details_prompt, xdict)
+        details_prompt = JsonPrompts(details_prompt, ScoreDetails)
 
         score_prompt = "Give me a total score out of 100. Return only the number."
 
@@ -62,10 +52,10 @@ class Prompts:
 
     @staticmethod
     def get_topics_prompt(topics: str) -> str:
-        example_dict = {"topic": "", "sub_topic": ""}
-        prompt = "\n Identify the topics they are talking about from the topics above."
-        prompt = Prompts.get_json_prompt(prompt, example_dict)
-        return topics + prompt
+        prompt = "\n Identify the topics they are talking about from the topics below."
+        prompt += "\n\n" + "Topics:\n" + topics
+        prompt = JsonPrompts(prompt, Topics)
+        return prompt
 
     @staticmethod
     def get_persona_prompt(persona: str | None, person: str = "user") -> str:
@@ -107,6 +97,6 @@ class Prompts:
         else:
             prompt = persona_prompt.format(person=person)
 
-        prompt = Prompts.get_json_prompt(prompt, Constants.persona_dict)
+        prompt = JsonPrompts(prompt, Persona)
 
         return prompt

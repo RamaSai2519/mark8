@@ -1,9 +1,7 @@
 import os
 import re
 import pytz
-import json
 import boto3
-from pprint import pprint
 import requests
 import subprocess
 from datetime import datetime
@@ -36,28 +34,6 @@ class Helper:
         self.recording_url = recording_url
         self.audio_filename = audio_filename
         self.user_calls_count = user_calls_count
-
-    def extract_json(self, json_str: str) -> dict:
-        def clean_json(json_str: str) -> str:
-            json_str = re.sub(r'//.*', '', json_str)
-            json_str = re.sub(r',\s*([}\]])', r'\1', json_str)
-            json_str = json_str.replace("\n", "").replace(
-                "```", "").replace("json", "").strip()
-            return json_str
-
-        try:
-            if "json" in json_str:
-                match = re.search(r'```json\n(.*?)```', json_str, re.DOTALL)
-                if match:
-                    response_text = clean_json(match.group(1))
-                    response_text = json.loads(response_text)
-                    return response_text
-            cleaned_json_str = clean_json(json_str)
-            cleaned_json_str = json.loads(cleaned_json_str)
-            return cleaned_json_str
-        except Exception as e:
-            log(self.callId, f"JSON Error: {str(e)}, {json_str}")
-            return {}
 
     @staticmethod
     def check_for_transcript_file(callId: str) -> bool:
