@@ -1,3 +1,4 @@
+import time
 import boto3
 import tempfile
 from config import *
@@ -38,6 +39,7 @@ class Compute:
             browser = await launch(userDataDir=temp_dir, executablePath="/usr/bin/chromium-browser", args=['--no-sandbox'])
             page = await browser.newPage()
             await page.setContent(html_content)
+            time.sleep(5)
             await page.pdf({'path': output_path, 'format': 'A4', 'printBackground': True})
             await browser.close()
             await self.upload_to_s3(output_path, output_path.split("/")[-1])
