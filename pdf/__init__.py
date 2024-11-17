@@ -22,7 +22,6 @@ class Compute:
         metadata = {"fieldName": "pdf_file"}
 
         with open(file_path, "rb") as file:
-            file = file.read()
             self.client.upload_fileobj(
                 file,
                 self.bucket_name,
