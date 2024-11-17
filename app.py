@@ -20,6 +20,7 @@ async def generate_invoice() -> tuple:
         output = await Compute(input).compute()
         return jsonify(output.dict()), 200
     except Exception as e:
+        traceback.print_exc()
         return jsonify({"message": f"An error occurred: {str(e)}"}), 500
 
 
