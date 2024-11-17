@@ -37,7 +37,7 @@ class Compute:
         with tempfile.TemporaryDirectory() as temp_dir:
             browser = await launch(userDataDir=temp_dir, executablePath="/usr/bin/chromium-browser", args=['--no-sandbox'])
             page = await browser.newPage()
-            await page.setContent(html_content, {'waitUntil': 'networkidle0'})
+            await page.setContent(html_content)
             await page.pdf({'path': output_path, 'format': 'A4', 'printBackground': True})
             await browser.close()
             await self.upload_to_s3(output_path, output_path.split("/")[-1])
