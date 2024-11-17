@@ -40,7 +40,7 @@ class Compute:
 
     async def generate_pdf(self, html_content: str, output_path: str) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
-            browser = await launch(userDataDir=temp_dir)
+            browser = await launch(userDataDir=temp_dir, executablePath="/usr/bin/chromium-browser")
             page = await browser.newPage()
             await page.setContent(html_content, waitUntil='networkidle0')
             await page.pdf({'path': output_path, 'format': 'A4', 'printBackground': True})
