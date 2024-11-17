@@ -20,18 +20,12 @@ class Compute:
 
     async def upload_to_s3(self, file_path: str, file_name: str) -> str:
         metadata = {"fieldName": "pdf_file"}
-
-        with open(file_path, "rb") as file:
-            self.client.upload_fileobj(
-                file,
-                self.bucket_name,
-                file_name,
-                ExtraArgs={
-                    "Metadata": metadata,
-                    "ACL": "public-read",
-                    "ContentType": "application/pdf"
-                }
-            )
+        self.client.upload_file(
+            file_path,
+            self.bucket_name,
+            f"invoices/{file_name}",
+            ExtraArgs={"Metadata": metadata}
+        )
 
     async def generate_pdf(self, html_content: str, output_path: str) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
