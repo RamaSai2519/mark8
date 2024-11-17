@@ -1,9 +1,6 @@
-import json
 import boto3
-import asyncio
 import tempfile
 import dataclasses
-import nest_asyncio
 from config import *
 from flask import request
 from pyppeteer import launch
@@ -65,15 +62,9 @@ class Compute:
 
 
 class InvoiceService(Resource):
-    def post(self) -> dict:
-        input = json.loads(request.get_data())
+    async def post(self) -> dict:
+        input = await request.get_json()
         input = Input(**input)
-        loop = asyncio.get_event_loop()
 
-        # Allow the loop to run reentrantly
-        nest_asyncio.apply()
-
-        output = loop.run_until_complete(Compute(input).compute())
-        output = dataclasses.asdict(output)
-
-        return output
+        output = await Compute(input).compute()
+        return dataclasses.asdict(output)
