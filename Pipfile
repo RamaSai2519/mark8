@@ -16,6 +16,7 @@ gunicorn = "*"
 tiktoken = "*"
 pyppeteer = "*"
 flask-cors = "*"
+nest_asyncio = "*"
 flask_restful = "*"
 
 [dev-packages]
