@@ -1,10 +1,7 @@
 import boto3
 import tempfile
-import dataclasses
 from config import *
-from flask import request
 from pyppeteer import launch
-from flask_restful import Resource
 from pdf.htmlTemplate import htmlTemplate
 from interfaces import InvoiceData as Input, Output
 
@@ -59,12 +56,3 @@ class Compute:
             output_details={"file_url": file_url},
             output_message="Successfully generated Invoice PDF"
         )
-
-
-class InvoiceService(Resource):
-    async def post(self) -> dict:
-        input = await request.get_json()
-        input = Input(**input)
-
-        output = await Compute(input).compute()
-        return dataclasses.asdict(output)
