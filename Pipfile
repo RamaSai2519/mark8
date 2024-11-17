@@ -14,7 +14,9 @@ requests = "*"
 aws-wsgi = "*"
 gunicorn = "*"
 tiktoken = "*"
+pyppeteer = "*"
 flask-cors = "*"
+flask_restful = "*"
 
 [dev-packages]
 

@@ -11,5 +11,6 @@ ADA_ENDPOINT = "https://sukoon-chat.openai.azure.com/openai/deployments/text-emb
 
 DEEPGRAM_API_KEY = "61d43268e4d0be1e597f3bf9e797c025ac7ff214"
 
+AWS_REGION = "ap-south-1"
 AWS_ACCESS_KEY = "AKIAXYKJVMCCCYTFEVUC"
 AWS_SECRET_KEY = "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"

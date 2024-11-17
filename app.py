@@ -4,10 +4,15 @@ import threading
 from helper import log
 from model import Process
 from flask_cors import CORS
+from pdf import InvoiceService
 from flask import Flask, request, jsonify
+from flask_restful import Api
 
 app = Flask(__name__)
 CORS(app)
+api = Api(app)
+
+api.add_resource(InvoiceService, "/invoice")
 
 
 def process_call(callId: str) -> None:
@@ -26,7 +31,7 @@ def process_call(callId: str) -> None:
 
 
 @app.route("/process", methods=["POST"])
-def process_call_route():
+def process_call_route() -> tuple:
     print("Processing call")
     input = json.loads(request.get_data())
     callId = input.get("callId", None)
