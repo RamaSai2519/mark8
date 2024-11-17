@@ -18,7 +18,7 @@ async def generate_invoice() -> tuple:
         input_data = await request.get_json()
         input = InvoiceData(**input_data)
         output = await Compute(input).compute()
-        return jsonify(output.dict()), 200
+        return jsonify(output.__dict__), 200
     except Exception as e:
         traceback.print_exc()
         return jsonify({"message": f"An error occurred: {str(e)}"}), 500
