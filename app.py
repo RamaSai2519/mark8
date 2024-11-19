@@ -55,6 +55,13 @@ async def process_call_route() -> tuple:
 
 
 if __name__ == "__main__":
+    import asyncio
     import nest_asyncio
+    import hypercorn.asyncio
+    from hypercorn.config import Config
+
     nest_asyncio.apply()
-    app.run(debug=True, port=8080)
+    config = Config()
+    config.workers = 3
+    config.bind = ["0.0.0.0:8080"]
+    asyncio.run(hypercorn.asyncio.serve(app, config))
