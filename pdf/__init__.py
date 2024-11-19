@@ -35,6 +35,7 @@ class Compute:
             time.sleep(5)
             await page.pdf({'path': output_path, 'format': 'A4', 'printBackground': True})
             await browser.close()
+            await browser.disconnect()
             await self.upload_to_s3(output_path, output_path.split("/")[-1])
 
     async def compute(self) -> Output:

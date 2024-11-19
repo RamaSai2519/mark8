@@ -48,7 +48,7 @@ async def process_call_route() -> tuple:
     if not callId:
         return jsonify({"message": "callId is required"}), 400
     if can_wait:
-        message = await process_call(callId)
+        message = process_call(callId)  # Remove await for synchronous call
         return jsonify({"message": message}), 200
     threading.Thread(target=process_call, args=(callId,)).start()
     return jsonify({"message": "Processing call"}), 200

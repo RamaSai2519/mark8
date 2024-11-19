@@ -29,7 +29,10 @@ while True:
         payload = {"callId": call.callId, "canWait": True}
         print(f"Requesting processing for: {call.callId}")
         response = requests.post("http://localhost:8080/process", json=payload)
-        print(response.json())
+        try:
+            print(response.json())
+        except requests.exceptions.JSONDecodeError:
+            print("Failed to decode JSON response")
 
     # Sleep till 10 PM
     ist = pytz.timezone('Asia/Kolkata')
