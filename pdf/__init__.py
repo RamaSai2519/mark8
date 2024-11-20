@@ -24,7 +24,11 @@ class Compute:
             file_path,
             self.bucket_name,
             f"invoices/{file_name}",
-            ExtraArgs={"Metadata": metadata}
+            ExtraArgs={
+                "Metadata": metadata,
+                "ACL": "public-read",
+                "ContentType": "application/pdf"
+            }
         )
 
     async def generate_pdf(self, html_content: str, output_path: str) -> None:
