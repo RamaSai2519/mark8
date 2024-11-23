@@ -178,7 +178,7 @@ class Helper:
         log(callId, f"Payload to update expert: {payload}")
 
         payload = {"user_id": user_id}
-        url = GAMES_PROCESSOR_URL + '/actions/recommend_expert'
+        url = GAMES_PROCESSOR_URL + '/pandas/recommend_expert'
         response = requests.post(url, json=payload)
         log(callId, f"Response of user update: {response.text}")
         log(callId, f"Payload to update user: {payload}")
