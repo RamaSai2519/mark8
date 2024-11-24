@@ -179,6 +179,12 @@ class Compute:
             self.output.transcript)
         return self.output.transcript
 
+    def check_interest(self) -> str:
+        prompt = Prompts.get_interest_prompt()
+        user_interest = self.chat(prompt)
+        print(user_interest)
+        return user_interest
+
     def process_call(self) -> AnalyserOutput | None:
         start_message = "Starting process for call with:\n CallId: {callId}\n User: {user_name}\n Expert: {expert_name}"
         start_message = start_message.format(
@@ -188,9 +194,10 @@ class Compute:
         steps: list[Step] = [
             self.create_step("Audio to Text", self.generate_transcript),
             self.create_step("Analyzing transcript", self.analyze_transcript),
-            self.create_step("Evaluating call", self.evaluate_call),
-            self.create_step("Identifying topics", self.identify_topics),
-            self.create_step("Generating personas", self.generate_personas),
+            # self.create_step("Evaluating call", self.evaluate_call),
+            # self.create_step("Identifying topics", self.identify_topics),
+            # self.create_step("Generating personas", self.generate_personas),
+            self.create_step("Checking interest", self.check_interest)
         ]
 
         for step in steps:
