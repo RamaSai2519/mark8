@@ -1,4 +1,4 @@
-from schemas import ScoreDetails, Topics, Persona
+from schemas import ScoreDetails, Topics, Persona, UserInterest
 from interfaces import TranscriptPrompts, EvaluationPrompts, JsonPrompts
 
 
@@ -99,4 +99,10 @@ class Prompts:
 
         prompt = JsonPrompts(prompt, Persona)
 
+        return prompt
+
+    @staticmethod
+    def get_interest_prompt() -> JsonPrompts:
+        prompt = "Identify if the user has stated they are not interested in the platform, i.e. Sukoon Unlimited. Or if the user indicated they are not interested in calls from the platform. If not interested, return the respective value as 'true', else 'false'. State your reason and the instance as the explanation."
+        prompt = JsonPrompts(prompt, UserInterest)
         return prompt

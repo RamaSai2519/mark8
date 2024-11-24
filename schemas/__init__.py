@@ -87,3 +87,9 @@ class Persona(BaseModel):
     personality: str
     demographics: Demographics
     psychographics: Psychographics
+
+
+class UserInterest(BaseModel):
+    explanation: str
+    not_interested: bool
+    not_interested_in_calls: bool
