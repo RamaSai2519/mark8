@@ -89,7 +89,7 @@ class Persona(BaseModel):
     psychographics: Psychographics
 
 
-class NotInterested(BaseModel):
+class UserInterest(BaseModel):
     explanation: str
     not_interested: bool
     not_interested_in_calls: bool

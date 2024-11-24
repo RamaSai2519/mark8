@@ -129,6 +129,7 @@ class Process:
         self.update_expert(expert._id, output.expert_persona)
         Helper.updater(call.callId, str(expert._id),
                        expert.phoneNumber, str(user._id))
+        Helper.update_user_interest(call.callId, output.user_interest, str(user._id))
 
         finish = time.perf_counter()
         total_seconds = round(finish - start, 2)

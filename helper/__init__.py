@@ -5,6 +5,7 @@ import boto3
 import requests
 import subprocess
 from datetime import datetime
+from schemas import UserInterest
 from urllib.parse import urlparse, ParseResult
 from config import DEEPGRAM_API_KEY, AWS_ACCESS_KEY, AWS_SECRET_KEY, GAMES_PROCESSOR_URL, errorlog_collection
 
@@ -146,7 +147,7 @@ class Helper:
         with open("texts/summary_guidelines.txt", "r", encoding="utf-8") as file:
             summary_guidelines = file.read()
 
-        guidelines += "\n\n Here are the guidelines for the summary: \n" + summary_guidelines  
+        guidelines += "\n\n Here are the guidelines for the summary: \n" + summary_guidelines
         return guidelines
 
     def extract_score(self, score_str: str) -> float | int:
@@ -184,3 +185,25 @@ class Helper:
         log(callId, f"Payload to update user: {payload}")
 
         return response.text
+
+    @staticmethod
+    def update_user_interest(callId: str, interest: UserInterest, user_id: str) -> None:
+        url = GAMES_PROCESSOR_URL + '/actions/user_engagement'
+        payload = {"field": "userStatus", "key": user_id}
+
+        not_interested = "not_interested_user"
+        not_interested_call = "not_interested_calls_user"
+
+        if interest.not_interested:
+            payload["value"] = not_interested
+        elif interest.not_interested_in_calls:
+            payload["value"] = not_interested_call
+        elif interest.not_interested and interest.not_interested_in_calls:
+            payload["value"] = not_interested
+        else:
+            return None
+
+        log(callId, f"User not interested: {interest.__dict__}")
+        response = requests.post(url, json=payload)
+        log(callId, f"Response of user interest update: {response.text}")
+        log(callId, f"Payload to update user interest: {payload}")

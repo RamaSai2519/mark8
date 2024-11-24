@@ -4,6 +4,7 @@ import numpy as np
 from vector import Embedder
 from client import GPT_Client
 from helper import Helper, log
+from schemas import UserInterest
 from openai import RateLimitError
 from helper.prompts import Prompts
 from interfaces import AnalyserOutput, Constants, JsonPrompts, Step
@@ -182,6 +183,8 @@ class Compute:
     def check_interest(self) -> str:
         prompt = Prompts.get_interest_prompt()
         user_interest = self.chat(prompt, True)
+        user_interest = json.loads(user_interest)
+        self.output.user_interest = UserInterest(**user_interest)
         return user_interest
 
     def process_call(self) -> AnalyserOutput | None:

@@ -61,6 +61,7 @@ class AnalyserOutput:
     transcript: Optional[str] = None
     user_callback: Optional[str] = None
     score_details: Optional[dict] = None
+    user_interest: Optional[dict] = None
     expert_persona: Optional[dict] = None
     saarthi_feedback: Optional[str] = None
     customer_persona: Optional[dict] = None
