@@ -181,8 +181,7 @@ class Compute:
 
     def check_interest(self) -> str:
         prompt = Prompts.get_interest_prompt()
-        user_interest = self.chat(prompt)
-        print(user_interest)
+        user_interest = self.chat(prompt, True)
         return user_interest
 
     def process_call(self) -> AnalyserOutput | None:
@@ -194,9 +193,9 @@ class Compute:
         steps: list[Step] = [
             self.create_step("Audio to Text", self.generate_transcript),
             self.create_step("Analyzing transcript", self.analyze_transcript),
-            # self.create_step("Evaluating call", self.evaluate_call),
-            # self.create_step("Identifying topics", self.identify_topics),
-            # self.create_step("Generating personas", self.generate_personas),
+            self.create_step("Evaluating call", self.evaluate_call),
+            self.create_step("Identifying topics", self.identify_topics),
+            self.create_step("Generating personas", self.generate_personas),
             self.create_step("Checking interest", self.check_interest)
         ]
 
