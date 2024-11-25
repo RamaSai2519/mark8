@@ -1,4 +1,5 @@
 from shared.models.interfaces import GatherDataInput as Input, Output
+from shared.db.admins import get_error_logs_collection
 from shared.models.constants import OutputStatus
 from shared.configs import CONFIG as Config
 import requests
@@ -8,6 +9,7 @@ import time
 class Compute:
     def __init__(self, input: Input) -> None:
         self.input = input
+        self.logs_collection = get_error_logs_collection()
 
     def fetch_enagement_data(self, params: dict) -> dict:
         url = Config.URL + "/actions/user_engagement"
@@ -54,10 +56,16 @@ class Compute:
         file_url = response.get("output_details").get("file_url")
         return file_url
 
+    def mark_as_done(self):
+        query = {"data_type": self.input.data_type}
+        update = {"$set": {"status": "done"}}
+        self.logs_collection.update_one(query, update)
+
     def compute(self) -> Output:
         if self.input.data_type == "engagement":
             data = self.gather_engagement_data()
             file_url = self.upload_file(data)
+            self.mark_as_done()
             return Output(
                 output_details={"file_url": file_url},
                 output_status=OutputStatus.SUCCESS,
