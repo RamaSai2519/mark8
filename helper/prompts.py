@@ -61,33 +61,11 @@ class Prompts:
     def get_persona_prompt(persona: str | None, person: str = "user") -> str:
         old_persona_prompt = "This is the {person} persona derived from previous call transcripts: {persona}. \n"
         persona_prompt = """
-                Generate a {person} persona from the transcript provided above. Remember which speaker was the {person} and use only that speaker lines from the transcript to generate this persona. The persona should encompass demographics, psychographics, and personality traits based on the conversation. Specify the reason also for every field. Update the persona provided above , update only the field which you are sure about.
-
-                a. {person} Demographics:
-                1. Gender:
-                2. Ethnicity:
-                3. Education:
-                4. Marital Status Choose one(Single/Married/Widow/Widower/Divorced/Unmarried):
-                5. Income:
-                6. Living Status Choose one(Stays alone/Stays with spouse only/Stays with spouse and kids/Stays with kids (no spouse)/Has parents staying with them ):
-                7. Medical History:
-                8. Location/City:
-                9. Comfort with Technology:
-                10. Standard of Living:
-                11. Family Members:
-                12. Work Status Choose One(Retired/Active Working/Part-Time/Projects)
-                13. Last Company Worked For:
-                14. Language Preference:
-                15. Physical State Of Being: 
-
-                b. {person} Psychographics:
-                1. Needs:
-                2. Values:
-                3. Pain Points/ Challenges:
-                4. Motivators:
-
-                c. {person} Personality: Choose one(Sanguine/Choleric/Melancholic/Phlegmatic)
-                with the confidence score between 0 to 1,
+                Generate a {person} persona from the transcript provided above. 
+                Remember which speaker was the {person} and use only that speaker lines from the transcript to generate this persona. 
+                Make sure to take into account the old values also and then compare it to the new values you want to update.
+                Update the explanation field with the reasons and instances from the transcript.
+                Be sure to provide elaborate values for each property in the persona.
                 Please be strict in analysing and give correct data only.
                 """
 
