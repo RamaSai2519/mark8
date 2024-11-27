@@ -16,9 +16,9 @@ class Embedder:
         return len(tokens)
 
     def split_text(self, text: str, max_tokens: int = 7500) -> list:
-        words = text.split()
         chunks = []
         current_chunk = []
+        words = text.split()
 
         for word in words:
             current_chunk.append(word)
