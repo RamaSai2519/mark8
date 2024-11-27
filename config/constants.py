@@ -9,7 +9,7 @@ ADA_VERSION = "2023-05-15"
 ADA_API_KEY = "13c72289e9704b4ca63f683df19a7afe"
 ADA_ENDPOINT = "https://sukoon-chat.openai.azure.com/openai/deployments/text-embedding-ada-002/embeddings?api-version=2023-05-15"
 
-DEEPGRAM_API_KEY = "61d43268e4d0be1e597f3bf9e797c025ac7ff214"
+DEEPGRAM_API_KEY = "5a9faf9f968b90cc640e36f95ea93188d079b668"
 
 AWS_REGION = "ap-south-1"
 AWS_ACCESS_KEY = "AKIAXYKJVMCCCYTFEVUC"
