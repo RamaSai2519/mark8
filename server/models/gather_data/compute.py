@@ -57,9 +57,8 @@ class Compute:
         return file_url
 
     def mark_as_done(self):
-        query = {"data_type": self.input.data_type}
-        update = {"$set": {"status": "done"}}
-        self.logs_collection.update_one(query, update)
+        query = {"data_type": {"$exists": True}}
+        self.logs_collection.delete_many(query)
 
     def compute(self) -> Output:
         if self.input.data_type == "engagement":
