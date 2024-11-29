@@ -31,7 +31,6 @@ class Compute:
 
         output = self.fetch_enagement_data(params)
         total = output.get("total")
-        total = 10
         final_data.extend(output.get("data"))
         total_pages = total // params["size"]
         message = "{current}/{total} pages fetched"
