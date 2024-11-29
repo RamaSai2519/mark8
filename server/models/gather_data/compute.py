@@ -31,6 +31,7 @@ class Compute:
 
         output = self.fetch_enagement_data(params)
         total = output.get("total")
+        total = 10
         final_data.extend(output.get("data"))
         total_pages = total // params["size"]
         message = "{current}/{total} pages fetched"
@@ -46,7 +47,7 @@ class Compute:
         return final_data
 
     def upload_file(self, data: list[dict]) -> str:
-        url = Config.MARK_URL + "/flask/excel_upload"
+        url = "http://localhost:8080/flask/excel_upload"
         payload = {"data": data, "file_name": self.input.file_name}
         response = requests.post(url, json=payload)
         response: dict = response.json()
