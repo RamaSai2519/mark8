@@ -15,7 +15,6 @@ class Compute:
         url = Config.URL + "/actions/user_engagement"
         bearer = "Bearer " + Config.GAMES_ACCESS_TOKEN
         headers = {"Authorization": bearer}
-        print(params)
         response = requests.get(url, params=params, headers=headers)
         response = response.json()
         if not response.get("output_status"):
