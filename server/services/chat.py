@@ -10,7 +10,6 @@ class ChatService(Resource):
 
     def post(self) -> dict:
         input = json.loads(request.get_data())
-        print(input, "input")
         input = ChatInput(**input)
         output = Chat(input).process()
         output = dataclasses.asdict(output)

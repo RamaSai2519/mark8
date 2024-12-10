@@ -1,7 +1,7 @@
 from shared.models.interfaces import ChatInput as Input, Output
 from shared.db.chat import get_histories_collection
-from shared.helpers.openai import GPT_Client
 from server.models.chat.embedder import Embedder
+from shared.helpers.openai import GPT_Client
 from shared.models.common import Common
 from openai import RateLimitError
 from datetime import datetime
@@ -21,12 +21,12 @@ class Compute:
 
     def get_now_date(self) -> datetime:
         now_date = Common.get_current_utc_time()
-        now_date = now_date.replace(hour=0, minute=0, second=0, microsecond=0)
+        now_date = now_date.strftime('%Y-%m-%d')
         return now_date
 
     def determine_history(self) -> list:
         query = {'phoneNumber': self.input.phoneNumber,
-                 'createdAt': {'$gte': self.now_date}, 'context': self.input.context}
+                 'createdAt': self.now_date, 'context': self.input.context}
         history = self.histories_collection.find_one(query)
         if history:
             self.history_id = history['_id']
