@@ -33,9 +33,9 @@ class Compute:
             return history['history']
 
         default_history = [
-            {"role": "system", "content": "You are a helpful assistant."}]
-        if self.input.system_message:
-            default_history[0]['content'] = self.input.system_message
+            {"role": "system", "content": self.input.system_message or "You are a helpful AI assistant."}]
+
+        print(default_history, 'default_history')
         return default_history
 
     def update_history(self, role: str, content: str) -> None:
