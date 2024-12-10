@@ -25,6 +25,7 @@ quart_app = cors(quart_app)
 api = Api(flask_app)
 api.add_resource(ExcelUploadService, '/excel_upload')
 api.add_resource(GatherDataService, '/gather_data')
+api.add_resource(ChatService, '/chat')
 
 
 @quart_app.route("/invoice", methods=["POST"])

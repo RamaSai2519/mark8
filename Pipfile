@@ -22,6 +22,7 @@ starlette = "*"
 quart-cors = "*"
 flask-cors = "*"
 flask_restful = "*"
+flask_jwt_extended = "*"
 
 [dev-packages]
 
