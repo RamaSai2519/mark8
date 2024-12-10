@@ -5,6 +5,7 @@ from shared.helpers.openai import GPT_Client
 from shared.models.common import Common
 from openai import RateLimitError
 from datetime import datetime
+import numpy as np
 import time
 
 
@@ -12,6 +13,7 @@ class Compute:
     def __init__(self, input: Input) -> None:
         self.input = input
         self.common = Common()
+        self.system_embedding = None
         self.embedder = Embedder(self.input.context)
         self.histories_collection = get_histories_collection()
 
@@ -73,18 +75,23 @@ class Compute:
 
     def compute(self) -> Output:
         self.update_history('user', self.input.prompt)
+        self.system_embedding = self.embedder.get_embedding(
+            self.input.system_message)
 
         if self.input.use_embedder == False:
             response = self.get_gpt_response(self.input.res_format)
         else:
             embedding = self.embedder.get_embedding(self.input.prompt)
-            similar_entry = self.embedder.get_most_similar_prompt(embedding)
+            embeddings = [self.system_embedding, embedding]
+            concated_embedding = np.concatenate(embeddings).tolist()
+            similar_entry = self.embedder.get_most_similar_prompt(
+                concated_embedding)
             if similar_entry:
                 response = similar_entry['response']
             else:
                 response = self.get_gpt_response(self.input.res_format)
                 self.embedder.store_embedding(
-                    self.input.prompt, embedding, response)
+                    self.input.prompt, concated_embedding, response)
 
         self.update_history('assistant', response)
         self.save_history()
