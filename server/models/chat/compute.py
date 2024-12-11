@@ -23,7 +23,7 @@ class Compute:
 
     def get_now_date(self) -> datetime:
         now_date = Common.get_current_utc_time()
-        now_date = now_date.strftime('%Y-%m-%d')
+        now_date = now_date.strftime('%Y-%m-%d %H')
         return now_date
 
     def determine_history(self) -> list:
