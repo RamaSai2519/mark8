@@ -168,6 +168,7 @@ class WaChatHelper:
 
         - Call the appropriate function to fetch specific information like Available Sarathis, Upcoming Events, or User Details.
         - While dealing with date strings when you want to call functions, always use this format: {TimeFormats.ANTD_TIME_FORMAT}.
+        - Only show the events that are fetched using the 'GetUpcomingEvents' function. DO NOT HALLUCINATE.
 
         Here are some important links that you can share with the user when needed:
         This is the URL of the platform: https://sukoonunlimited.com/
