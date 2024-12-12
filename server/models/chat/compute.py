@@ -14,9 +14,9 @@ class Compute:
     def __init__(self, input: Input) -> None:
         self.input = input
         self.common = Common()
-        self.wa_chat_helper = WaChatHelper()
         self.embedder = Embedder(self.input.context)
         self.histories_collection = get_histories_collection()
+        self.wa_chat_helper = WaChatHelper(self.input.phoneNumber)
 
         self.now_date = self.get_now_date()
         self.query = self.prep_query()
@@ -48,7 +48,7 @@ class Compute:
             system_message = "You are a helpful AI assistant."
             default_history = [{"role": "system", "content": system_message}]
         else:
-            system_message = helper.get_system_message(self.input.phoneNumber)
+            system_message = helper.get_system_message()
             default_history = [{"role": "system", "content": system_message}]
 
         insertion = self.histories_collection.insert_one(
@@ -64,21 +64,34 @@ class Compute:
         update = {'$set': {'history': self.message_history, 'status': 'done'}}
         self.histories_collection.update_one({'_id': self.history_id}, update)
 
-    def get_gpt_response(self, format: dict = None) -> str:
+    def get_gpt_response(self) -> str:
         client_obj = GPT_Client()
         client = client_obj.get_gpt_client()
+        tools = self.get_helper().get_tools()
         while True:
             try:
-                if format:
-                    response = client.beta.chat.completions.parse(
-                        model='gpt-4-turbo', messages=self.message_history, response_format=format)
-                else:
-                    response = client.chat.completions.create(
-                        model='gpt-4-turbo', messages=self.message_history)
+                response = client.chat.completions.create(
+                    model='gpt-4-turbo', messages=self.message_history, tools=tools)
+                tool_calls = response.choices[0].message.tool_calls
+                if tool_calls:
+                    self.message_history.append({
+                        'role': 'assistant',
+                        'tool_calls': [
+                            {**t.__dict__, 'function': t.function.__dict__}
+                            for t in tool_calls
+                        ],
+                    })
+                    for tool_call in tool_calls:
+                        function_name = tool_call.function.name
+                        arguments = tool_call.function.arguments
+                        tool_response = self.get_helper().handle_function_call(
+                            function_name, arguments)
+                        self.message_history.append(
+                            {'role': 'tool', 'content': tool_response, 'tool_call_id': tool_call.id, 'timestamp': Common.get_current_utc_time().strftime('%Y-%m-%d %H:%M:%S')})
+                    continue
                 break
             except RateLimitError:
                 time.sleep(5)
-
         assistant_response = response.choices[0].message.content
         return assistant_response
 
@@ -95,8 +108,8 @@ class Compute:
             return Output(output_message='Please wait for the assistant to respond.')
         self.update_history('user', self.input.prompt)
 
-        if self.input.use_embedder == False:
-            response = self.get_gpt_response(self.input.res_format)
+        if self.input.use_embedder == False or self.input.context == 'wa_webhook':
+            response = self.get_gpt_response()
         else:
             embedding = self.embedder.get_embedding(self.input.prompt)
             embeddings = [self.system_embedding, embedding]
@@ -106,7 +119,7 @@ class Compute:
             if similar_entry:
                 response = similar_entry['response']
             else:
-                response = self.get_gpt_response(self.input.res_format)
+                response = self.get_gpt_response()
                 self.embedder.store_embedding(
                     self.input.prompt, concated_embedding, response)
 
