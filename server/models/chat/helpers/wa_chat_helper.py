@@ -37,32 +37,7 @@ class WaChatHelper:
         response = requests.get(url, params=params)
         output = Output(**response.json())
         data = output.output_details.get('data', [])
-        events = []
-
-        for event in data:
-            eventStartDateTime = event.get(
-                'startEventDate', event.get('validUpto'))
-            if eventStartDateTime:
-                eventStartDateTime = datetime.strptime(
-                    eventStartDateTime, TimeFormats.ANTD_TIME_FORMAT)
-                eventStartDateTime += timedelta(hours=5, minutes=30)
-                eventStartDateTime = eventStartDateTime.strftime(
-                    '%Y-%m-%d %H:%M:%S')
-
-            events.append({
-                'slug': event.get('slug', ''),
-                'mainTitle': event.get('mainTitle', ''),
-                'subTitle': event.get('subTitle', ''),
-                'hostedBy': event.get('hostedBy', ''),
-                'guestSpeaker': event.get('guestSpeaker', ''),
-                'eventStartDateTime': eventStartDateTime,
-                'eventType': event.get('eventType', 'online'),
-                'prizeMoney': event.get('prizeMoney', None),
-                'eventPrice': event.get('eventPrice', 'Free'),
-                'eventRegistrationLink': f'https://sukoonunlimited.com/{event.get("slug", "")}'
-            })
-
-        return json.dumps(events)
+        return data
 
     def get_user_details(self, arguments: dict = None) -> dict:
         url = config.URL + '/actions/user'
@@ -111,8 +86,8 @@ class WaChatHelper:
             f"Function Name: {function_name}, Arguments: {arguments}"
         )
         function_map = {
-            "get_available_sarathis": self.get_available_sarathis,
-            "upcoming_events": self.upcoming_events,
+            "GetAvailableSarathis": self.get_available_sarathis,
+            "GetUpcomingEvents": self.upcoming_events,
             "GetUserDetails": self.get_user_details,
             "SaveUserCity": lambda args: self.register_user(city=args.get('city')),
             "SaveUserName": lambda args: self.register_user(name=args.get('name')),
@@ -126,7 +101,6 @@ class WaChatHelper:
 
     def get_current_time(self) -> str:
         current_time = Common.get_current_utc_time()
-        current_time += timedelta(hours=5, minutes=30)
         return current_time.strftime('%Y-%m-%d %H:%M:%S')
 
     def get_system_message(self) -> str:
@@ -150,9 +124,9 @@ class WaChatHelper:
         scope, direct users to Sukoon Unlimited’s support team for further assistance. Always prioritize user well-being and promote the company’s mission to make
         senior lives happier and more connected.
 
-        Current Local Time: {self.get_current_time()}
+        Current Time: {self.get_current_time()}
         Use this time to compare with the event timings or sarathi availability.
-        All times mentioned are in Indian Standard Time (IST).
+        Remember to convert all times to Indian Standard Time (IST) before sharing them with the user.
 
         You will be provided with the list of available sarathis and you can recommend or show the list to the user if needed.
         Or can also recommend a sarathi based on the user query and the sarathi's personas.
@@ -168,14 +142,17 @@ class WaChatHelper:
 
         - Call the appropriate function to fetch specific information like Available Sarathis, Upcoming Events, or User Details.
         - While dealing with date strings when you want to call functions, always use this format: {TimeFormats.ANTD_TIME_FORMAT}.
+        - Try to converse in the language user is speaking in.
         - Only show the events that are fetched using the 'GetUpcomingEvents' function. DO NOT HALLUCINATE.
+        - Do not share the event's `meetingLink` or `meetingId` with the user at any cost.
+        - Sharing `meetingLink` or `meetingId` or zoom link with the user is strictly prohibited.
+        - You are allowed to share the event's registration link with `slug` in place of [event_slug] like this: https://sukoonunlimited.com/[event_slug]
 
         Here are some important links that you can share with the user when needed:
         This is the URL of the platform: https://sukoonunlimited.com/
         This is the URL of the platform's events page: https://sukoonunlimited.com/events
         This is the URL of the platform's sarathis page: https://sukoonunlimited.com/speak
         This is the URL of the platform's club membership page: https://sukoonunlimited.com/subscription
-        This is the URL of a specific event details page: https://sukoonunlimited.com/tes (replace 'tes' with the event slug)
 
         If the user has any further queries or needs assistance, you can asure them that the support team is available from 9am-9pm and will contact them soon.
         You are only to converse and help the user with the queries related to the platform and the services provided by Sukoon Unlimited and nothing else.
