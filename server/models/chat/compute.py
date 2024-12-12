@@ -17,41 +17,39 @@ class Compute:
         self.embedder = Embedder(self.input.context)
         self.histories_collection = get_histories_collection()
 
-        self.history_id = None
         self.now_date = self.get_now_date()
-        self.message_history = self.determine_history()
+        self.query = self.prep_query()
+        self.message_history, self.history_id = self.determine_history()
 
     def get_now_date(self) -> datetime:
         now_date = Common.get_current_utc_time()
         now_date = now_date.strftime('%Y-%m-%d %H')
         return now_date
 
-    def determine_history(self) -> list:
+    def prep_query(self) -> dict:
         query = {'phoneNumber': self.input.phoneNumber,
                  'createdAt': self.now_date, 'context': self.input.context}
-        history = self.histories_collection.find_one(query)
+        return query
+
+    def determine_history(self) -> tuple[list[dict], str]:
+        history = self.histories_collection.find_one(self.query)
         if history:
-            self.history_id = history['_id']
-            return history['history']
+            return history['history'], history['_id']
 
         default_history = [
             {"role": "system", "content": self.input.system_message or "You are a helpful AI assistant."}]
-        return default_history
+        insertion = self.histories_collection.insert_one(
+            {**self.query, 'history': default_history, 'status': 'started'})
+        return default_history, insertion.inserted_id
 
     def update_history(self, role: str, content: str) -> None:
-        self.message_history.append({"role": role, "content": content})
+        self.message_history.append(
+            {"role": role, "content": content, "timestamp": datetime.now()})
         return self.message_history
 
     def save_history(self) -> None:
-        query = {'phoneNumber': self.input.phoneNumber,
-                 'createdAt': self.now_date, 'context': self.input.context}
-        update = {'$set': {'history': self.message_history}}
-        if self.history_id:
-            self.histories_collection.update_one(
-                {'_id': self.history_id}, update)
-        else:
-            query['history'] = self.message_history
-            self.histories_collection.insert_one(query)
+        update = {'$set': {'history': self.message_history, 'status': 'done'}}
+        self.histories_collection.update_one({'_id': self.history_id}, update)
 
     def get_gpt_response(self, format: dict = None) -> str:
         client_obj = GPT_Client()
@@ -71,7 +69,17 @@ class Compute:
         assistant_response = response.choices[0].message.content
         return assistant_response
 
+    def check_to_serve(self) -> bool:
+        doc = self.histories_collection.find_one(self.query)
+        if doc['status'] == 'inprogress':
+            return False
+        update = {'$set': {'status': 'inprogress'}}
+        self.histories_collection.update_one({'_id': self.history_id}, update)
+        return True
+
     def compute(self) -> Output:
+        if self.check_to_serve() == False:
+            return Output(output_message='Please wait for the assistant to respond.')
         self.update_history('user', self.input.prompt)
         self.system_embedding = self.embedder.get_embedding(
             self.input.system_message)

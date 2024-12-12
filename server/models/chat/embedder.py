@@ -78,4 +78,4 @@ class Embedder:
         most_similar = max(
             similarities, key=lambda x: x[1]) if similarities else None
         print(most_similar[1])
-        return most_similar[0] if most_similar and most_similar[1] > 0.99 else None
+        return most_similar[0] if most_similar and most_similar[1] >= 1 else None
