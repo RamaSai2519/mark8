@@ -1,3 +1,4 @@
+from server.models.chat.helpers.wa_chat_helper import WaChatHelper
 from shared.models.interfaces import ChatInput as Input, Output
 from shared.db.chat import get_histories_collection
 from server.models.chat.embedder import Embedder
@@ -13,13 +14,19 @@ class Compute:
     def __init__(self, input: Input) -> None:
         self.input = input
         self.common = Common()
-        self.system_embedding = None
+        self.wa_chat_helper = WaChatHelper()
         self.embedder = Embedder(self.input.context)
         self.histories_collection = get_histories_collection()
 
         self.now_date = self.get_now_date()
         self.query = self.prep_query()
-        self.message_history, self.history_id = self.determine_history()
+        self.message_history, self.history_id, self.system_message = self.determine_history()
+        self.system_embedding = self.embedder.get_embedding(
+            self.system_message)
+
+    def get_helper(self):
+        if self.input.context == 'wa_webhook':
+            return self.wa_chat_helper
 
     def get_now_date(self) -> datetime:
         now_date = Common.get_current_utc_time()
@@ -34,17 +41,23 @@ class Compute:
     def determine_history(self) -> tuple[list[dict], str]:
         history = self.histories_collection.find_one(self.query)
         if history:
-            return history['history'], history['_id']
+            return history['history'], history['_id'], history['history'][-1]['content']
 
-        default_history = [
-            {"role": "system", "content": self.input.system_message or "You are a helpful AI assistant."}]
+        helper = self.get_helper()
+        if not helper:
+            system_message = "You are a helpful AI assistant."
+            default_history = [{"role": "system", "content": system_message}]
+        else:
+            system_message = helper.get_system_message(self.input.phoneNumber)
+            default_history = [{"role": "system", "content": system_message}]
+
         insertion = self.histories_collection.insert_one(
             {**self.query, 'history': default_history, 'status': 'started'})
-        return default_history, insertion.inserted_id
+        return default_history, insertion.inserted_id, system_message
 
     def update_history(self, role: str, content: str) -> None:
         self.message_history.append(
-            {"role": role, "content": content, "timestamp": datetime.now()})
+            {"role": role, "content": content, "timestamp": Common.get_current_utc_time().strftime('%Y-%m-%d %H:%M:%S')})
         return self.message_history
 
     def save_history(self) -> None:
@@ -81,8 +94,6 @@ class Compute:
         if self.check_to_serve() == False:
             return Output(output_message='Please wait for the assistant to respond.')
         self.update_history('user', self.input.prompt)
-        self.system_embedding = self.embedder.get_embedding(
-            self.input.system_message)
 
         if self.input.use_embedder == False:
             response = self.get_gpt_response(self.input.res_format)
