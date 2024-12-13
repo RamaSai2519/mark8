@@ -64,10 +64,17 @@ class Compute:
         update = {'$set': {'history': self.message_history, 'status': 'done'}}
         self.histories_collection.update_one({'_id': self.history_id}, update)
 
+    def truncate_history(self):
+        system_message = self.message_history[0]
+        truncated_history = [system_message]
+        self.message_history = truncated_history
+        self.update_history('user', self.input.prompt)
+
     def get_gpt_response(self) -> str:
         client_obj = GPT_Client()
         client = client_obj.get_gpt_client()
         tools = self.get_helper().get_tools()
+        errors = 0
         while True:
             try:
                 response = client.chat.completions.create(
@@ -91,6 +98,12 @@ class Compute:
                     continue
                 break
             except RateLimitError:
+                print('Rate limit error. Waiting for 5 seconds.')
+                errors += 1
+                if errors > 3:
+                    print('Truncating message history.')
+                    self.truncate_history()
+                    continue
                 time.sleep(5)
         assistant_response = response.choices[0].message.content
         return assistant_response

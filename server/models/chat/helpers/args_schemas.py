@@ -18,7 +18,8 @@ class GetUserDetails(BaseModel):
 
 
 class GetAvailableSarathis(BaseModel):
-    pass
+    page: int
+    size: int
 
 
 class GetUpcomingEvents(BaseModel):

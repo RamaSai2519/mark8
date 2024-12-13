@@ -15,9 +15,11 @@ class WaChatHelper:
         self.phoneNumber = phoneNumber
         self.system_prompts_collection = get_system_prompts_collection()
 
-    def get_available_sarathis(self, arguments: dict = None) -> list:
+    def get_available_sarathis(self, page: int, size: int) -> list:
         url = config.URL + '/actions/expert'
         params = {'filter_field': 'status', 'filter_value': 'online'}
+        params['page'] = page
+        params['size'] = size
         response = requests.get(url, params=params)
         output = Output(**response.json())
         data = output.output_details
@@ -26,11 +28,10 @@ class WaChatHelper:
         for expert in data:
             experts.append({
                 'name': expert.get('name'),
-                'description': expert.get('description'),
-                'persona': expert.get('persona')
+                'persona': json.dumps(expert.get('persona'))
             })
 
-        return json.dumps(experts)
+        return experts
 
     def upcoming_events(self, arguments: dict = None) -> list:
         url = config.URL + '/actions/list_events'
@@ -70,7 +71,7 @@ class WaChatHelper:
     def get_tools(self) -> list:
         return [
             openai.pydantic_function_tool(
-                GetAvailableSarathis, description="Get the list of available sarathis. Call this whenever the user wants to speak to a sarathi. or wants to know who is available to speak to. It returns a list of sarathis with their names, descriptions, and personas. You can use the persona to recommend a sarathi to the user based on the user's persona. Do not return the list as it is or all at once."),
+                GetAvailableSarathis, description="Get the list of available sarathis. Call this whenever the user wants to speak to a sarathi. or wants to know who is available to speak to. It returns a list of sarathis with their names, descriptions, and personas. You can use the persona to recommend a sarathi to the user based on the user's persona. Do not return the list as it is or all at once. Use the page and size arguments to paginate the list as the full list may be too large. Keep the size to 3 at max."),
             openai.pydantic_function_tool(
                 GetUpcomingEvents, description="Get the list of upcoming events. Call this whenever the user wants to know about the upcoming events. It returns a list of events with their main title, sub title, hosted by, guest speaker, event start date time, event type, prize money, event price, and event registration link. Do not return the list as it is or all at once."),
             openai.pydantic_function_tool(
@@ -88,7 +89,7 @@ class WaChatHelper:
             f"Function Name: {function_name}, Arguments: {arguments}"
         )
         function_map = {
-            "GetAvailableSarathis": self.get_available_sarathis,
+            "GetAvailableSarathis": lambda args: self.get_available_sarathis(page=args.get('page'), size=args.get('size')),
             "GetUpcomingEvents": self.upcoming_events,
             "GetUserDetails": self.get_user_details,
             "SaveUserCity": lambda args: self.register_user(city=args.get('city')),
@@ -99,6 +100,7 @@ class WaChatHelper:
         arguments = json.loads(arguments) if arguments else {}
         response = function_map[function_name](
             arguments) if function_name in function_map else {}
+        print(f"Response: {response}")
         return json.dumps(response)
 
     def get_current_time(self) -> str:
