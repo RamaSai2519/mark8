@@ -48,6 +48,7 @@ class Compute:
         output_path = f"/tmp/{file_name}"
         endpoint_url = self.client.meta.endpoint_url
         file_url = f"{endpoint_url}/{self.bucket_name}/invoices/{file_name}"
+        await print("File URL:", file_url)
 
         await self.generate_pdf(html_content, output_path)
 
