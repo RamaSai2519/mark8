@@ -37,7 +37,7 @@ class Compute:
             print("Browser Launched:", browser)
             page = await browser.newPage()
             await page.setContent(html_content)
-            time.sleep(5)
+            time.sleep(2)
             await page.pdf({'path': output_path, 'format': 'A4', 'printBackground': True})
             await self.upload_to_s3(output_path, output_path.split("/")[-1])
             await browser.close()
