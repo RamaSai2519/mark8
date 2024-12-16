@@ -1,7 +1,6 @@
 import time
 import boto3
 import tempfile
-import logging
 from mark.config import *
 from pyppeteer import launch
 from pdf.htmlTemplate import htmlTemplate
@@ -41,8 +40,8 @@ class Compute:
                 await page.setContent(html_content)
                 time.sleep(5)
                 await page.pdf({'path': output_path, 'format': 'A4', 'printBackground': True})
-                await browser.close()
                 await browser.disconnect()
+                await browser.close()
                 await self.upload_to_s3(output_path, output_path.split("/")[-1])
         except Exception as e:
             print("Browser Error:", e)
