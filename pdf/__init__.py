@@ -32,19 +32,22 @@ class Compute:
         )
 
     async def generate_pdf(self, html_content: str, output_path: str) -> None:
-        try:
-            with tempfile.TemporaryDirectory() as temp_dir:
-                browser = await launch(userDataDir=temp_dir, executablePath="/usr/bin/chromium-browser", args=['--no-sandbox'])
-                print("Browser Launched:", browser)
-                page = await browser.newPage()
-                await page.setContent(html_content)
-                time.sleep(5)
-                await page.pdf({'path': output_path, 'format': 'A4', 'printBackground': True})
-                await browser.disconnect()
-                await browser.close()
-                await self.upload_to_s3(output_path, output_path.split("/")[-1])
-        except Exception as e:
-            print("Browser Error:", e)
+        while True:
+            try:
+                with tempfile.TemporaryDirectory() as temp_dir:
+                    browser = await launch(userDataDir=temp_dir, executablePath="/usr/bin/chromium-browser", args=['--no-sandbox'])
+                    print("Browser Launched:", browser)
+                    page = await browser.newPage()
+                    await page.setContent(html_content)
+                    time.sleep(5)
+                    await page.pdf({'path': output_path, 'format': 'A4', 'printBackground': True})
+                    await browser.disconnect()
+                    await browser.close()
+                    await self.upload_to_s3(output_path, output_path.split("/")[-1])
+                    break
+            except Exception as e:
+                print("Browser Error:", e)
+                continue
 
     async def compute(self) -> Output:
         html_content = htmlTemplate(self.input)
