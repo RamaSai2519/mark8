@@ -5,9 +5,9 @@ import boto3
 import requests
 import subprocess
 from datetime import datetime
-from schemas import UserInterest
+from mark.schemas import UserInterest
 from urllib.parse import urlparse, ParseResult
-from config import DEEPGRAM_API_KEY, AWS_ACCESS_KEY, AWS_SECRET_KEY, GAMES_PROCESSOR_URL, errorlog_collection
+from mark.config import DEEPGRAM_API_KEY, AWS_ACCESS_KEY, AWS_SECRET_KEY, GAMES_PROCESSOR_URL, errorlog_collection
 
 s3_client = boto3.client(
     's3', aws_access_key_id=AWS_ACCESS_KEY, aws_secret_access_key=AWS_SECRET_KEY)
@@ -138,13 +138,13 @@ class Helper:
 
     def get_guidelines(self) -> str:
         if self.user_calls_count == 1:
-            with open("texts/guidelines.txt", "r", encoding="utf-8") as file:
+            with open("mark/texts/guidelines.txt", "r", encoding="utf-8") as file:
                 guidelines = file.read()
         else:
-            with open("texts/guidelines2.txt", "r", encoding="utf-8") as file:
+            with open("mark/texts/guidelines2.txt", "r", encoding="utf-8") as file:
                 guidelines = file.read()
 
-        with open("texts/summary_guidelines.txt", "r", encoding="utf-8") as file:
+        with open("mark/texts/summary_guidelines.txt", "r", encoding="utf-8") as file:
             summary_guidelines = file.read()
 
         guidelines += "\n\n Here are the guidelines for the summary: \n" + summary_guidelines

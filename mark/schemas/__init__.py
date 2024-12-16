@@ -1,4 +1,6 @@
+from dataclasses import dataclass
 from pydantic import BaseModel
+from typing import Optional
 
 
 class ScoreDetails(BaseModel):
@@ -93,3 +95,18 @@ class UserInterest(BaseModel):
     explanation: str
     not_interested: bool
     not_interested_in_calls: bool
+
+@dataclass
+class JsonPrompts:
+    prompt: str
+    rformat: Optional[BaseModel] = None
+
+
+@dataclass
+class EvaluationPrompts:
+    score_prompt: str
+    summary_prompt: str
+    callback_prompt: str
+    feedback_prompt: str
+    guidelines_prompt: str
+    score_details_prompt: JsonPrompts

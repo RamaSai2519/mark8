@@ -1,4 +1,4 @@
-from config.constants import *
+from mark.config.constants import *
 from pymongo import MongoClient
 
 client = MongoClient(DB_URL)

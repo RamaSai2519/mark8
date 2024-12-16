@@ -1,4 +1,4 @@
-from interfaces import InvoiceData as Input
+from shared.models.interfaces import InvoiceData as Input
 
 
 def htmlTemplate(data: Input) -> str:

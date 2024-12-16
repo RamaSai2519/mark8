@@ -1,5 +1,5 @@
-from schemas import ScoreDetails, Topics, Persona, UserInterest
-from interfaces import TranscriptPrompts, EvaluationPrompts, JsonPrompts
+from shared.models.interfaces import TranscriptPrompts
+from mark.schemas import ScoreDetails, Topics, Persona, UserInterest, JsonPrompts, EvaluationPrompts
 
 
 class Prompts:

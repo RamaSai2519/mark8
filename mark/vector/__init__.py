@@ -1,7 +1,7 @@
 import tiktoken
 import numpy as np
-from client import ADA_Client
-from config import call_prompts_collection, transcripts_collection, constants_collection
+from shared.helpers.openai import ADA_Client
+from mark.config import call_prompts_collection, transcripts_collection, constants_collection
 
 
 class Embedder:

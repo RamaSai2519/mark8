@@ -1,13 +1,14 @@
 import json
 import time
 import numpy as np
-from vector import Embedder
-from client import GPT_Client
-from helper import Helper, log
-from schemas import UserInterest
+from mark.vector import Embedder
 from openai import RateLimitError
-from helper.prompts import Prompts
-from interfaces import AnalyserOutput, Constants, JsonPrompts, Step
+from mark.helper import Helper, log
+from mark.schemas import JsonPrompts
+from mark.schemas import UserInterest
+from mark.helper.prompts import Prompts
+from shared.helpers.openai import GPT_Client
+from shared.models.interfaces import AnalyserOutput, Constants, Step
 
 user = Constants.user
 assistant = Constants.assistant
@@ -140,7 +141,7 @@ class Compute:
         return self.output.score
 
     def identify_topics(self) -> None:
-        topics_file = Helper.get_file_path("texts/topics.txt")
+        topics_file = Helper.get_file_path("mark/texts/topics.txt")
         with open(topics_file, "r", encoding="utf-8") as file:
             topics = file.read()
         prompt = Prompts.get_topics_prompt(topics)

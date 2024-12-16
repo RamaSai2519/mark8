@@ -1,10 +1,10 @@
 import time
 import boto3
 import tempfile
-from config import *
+from mark.config import *
 from pyppeteer import launch
 from pdf.htmlTemplate import htmlTemplate
-from interfaces import InvoiceData as Input, Output
+from shared.models.interfaces import InvoiceData as Input, Output
 
 
 class Compute:
