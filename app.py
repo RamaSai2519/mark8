@@ -1,17 +1,17 @@
 import json
 import traceback
 import threading
-from helper import log
 from pdf import Compute
-from model import Process
+from mark.helper import log
 from quart_cors import cors
 from flask_cors import CORS
 from flask_restful import Api
-from interfaces import InvoiceData
+from mark.model import Process
 from starlette.routing import Mount
 from server.services.controller import *
-from flask import Flask, request, jsonify
 from starlette.applications import Starlette
+from shared.models.interfaces import InvoiceData
+from flask import Flask, request, jsonify, Response
 from starlette.middleware.wsgi import WSGIMiddleware
 from quart import Quart, jsonify as qjsonify, request as qrequest
 
@@ -70,7 +70,7 @@ def process_call_route() -> tuple:
 
 
 @flask_app.after_request
-def log_flask_response(response):
+def log_flask_response(response: Response) -> Response:
     message = 'path: ' + request.path + ' method: ' + \
         request.method + ' status: ' + str(response.status_code)
     print(message)

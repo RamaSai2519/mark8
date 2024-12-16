@@ -1,13 +1,13 @@
 import pytz
 import time
 import traceback
-from helper import log
+from mark.helper import log
 from bson import ObjectId
-from helper import Helper
-from compute import Compute
+from mark.helper import Helper
+from mark.compute import Compute
 from datetime import datetime
-from interfaces import Call, User, Expert
-from config import calls_collection, callsmeta_collection, experts_collection, users_collection
+from shared.models.interfaces import Call, User, Expert
+from mark.config import calls_collection, callsmeta_collection, experts_collection, users_collection
 
 
 class Process:
@@ -129,7 +129,8 @@ class Process:
         self.update_expert(expert._id, output.expert_persona)
         Helper.updater(call.callId, str(expert._id),
                        expert.phoneNumber, str(user._id))
-        Helper.update_user_interest(call.callId, output.user_interest, str(user._id))
+        Helper.update_user_interest(
+            call.callId, output.user_interest, str(user._id))
 
         finish = time.perf_counter()
         total_seconds = round(finish - start, 2)

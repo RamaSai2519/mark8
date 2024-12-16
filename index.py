@@ -1,8 +1,8 @@
-from config import calls_collection
+from shared.models.interfaces import Call
+from mark.config import calls_collection
+from mark.helper import Helper
+from mark.model import Process
 from datetime import datetime
-from interfaces import Call
-from helper import Helper
-from model import Process
 from pprint import pprint
 import requests
 import time
@@ -28,7 +28,8 @@ while True:
     for call in apt_calls:
         payload = {"callId": call.callId, "canWait": True}
         print(f"Requesting processing for: {call.callId}")
-        response = requests.post("http://localhost:8080/flask/process", json=payload)
+        response = requests.post(
+            "http://localhost:8080/flask/process", json=payload)
         try:
             print(response.json())
         except requests.exceptions.JSONDecodeError:
