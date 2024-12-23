@@ -2,6 +2,7 @@ import json
 import openai
 import requests
 from .args_schemas import *
+from datetime import datetime
 from shared.models.common import Common
 from shared.models.interfaces import Output
 from shared.configs import CONFIG as config
@@ -47,12 +48,13 @@ class WaChatHelper:
         response = requests.get(url, params=params)
         output = Output(**response.json())
         user = output.output_details
+        birthDate = user.get('birthDate', '')
 
         return {
             'name': user.get('name', ''),
             'city': user.get('city', ''),
-            'birthDate': user.get('birthDate', '').strftime('%Y-%m-%d') if user.get('birthDate') else '',
-            'persona': user.get('customerPersona', '')
+            'persona': user.get('customerPersona', ''),
+            'birthDate': birthDate.strftime('%Y-%m-%d') if birthDate and isinstance(birthDate, datetime) else ''
         }
 
     def register_user(self, name: str = None, city: str = None, birthDate: str = None) -> dict:
