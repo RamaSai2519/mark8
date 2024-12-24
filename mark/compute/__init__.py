@@ -4,10 +4,9 @@ import numpy as np
 from mark.vector import Embedder
 from openai import RateLimitError
 from mark.helper import Helper, log
-from mark.schemas import JsonPrompts
-from mark.schemas import UserInterest
 from mark.helper.prompts import Prompts
 from shared.helpers.openai import GPT_Client
+from shared.schemas import JsonPrompts, UserInterest
 from shared.models.interfaces import AnalyserOutput, Constants, Step
 
 user = Constants.user

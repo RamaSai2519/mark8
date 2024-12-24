@@ -1,5 +1,5 @@
 from shared.models.interfaces import TranscriptPrompts
-from mark.schemas import ScoreDetails, Topics, Persona, UserInterest, JsonPrompts, EvaluationPrompts
+from shared.schemas import ScoreDetails, Topics, Persona, UserInterest, JsonPrompts, EvaluationPrompts
 
 
 class Prompts:

@@ -5,7 +5,7 @@ import boto3
 import requests
 import subprocess
 from datetime import datetime
-from mark.schemas import UserInterest
+from shared.schemas import UserInterest
 from urllib.parse import urlparse, ParseResult
 from mark.config import DEEPGRAM_API_KEY, AWS_ACCESS_KEY, AWS_SECRET_KEY, GAMES_PROCESSOR_URL, errorlog_collection
 
