@@ -121,8 +121,9 @@ class Compute:
 
         def get_score() -> float:
             raw_score = self.chat(prompts.score_prompt)
-            self.output.score = self.helper.extract_score(raw_score)
-            return self.output.score
+            raw_score = json.loads(raw_score)
+            self.output.score = raw_score.get('score', 0)
+            return str(self.output.score)
 
         steps: list[Step] = [
             self.create_step("Giving guidelines", give_guidelines),
@@ -137,7 +138,7 @@ class Compute:
             if not self.helper.run_step(step.description, step.method):
                 return None
 
-        return self.output.score
+        return str(self.output.score)
 
     def identify_topics(self) -> None:
         topics_file = Helper.get_file_path("mark/texts/topics.txt")
@@ -147,21 +148,21 @@ class Compute:
         topics = self.chat(prompt)
 
         self.output.topics = json.loads(topics)['topics']
-        return self.output.topics
+        return str(self.output.topics)
 
     def generate_personas(self) -> None:
         def get_user_persona() -> str:
             prompt = Prompts.get_persona_prompt(self.old_user_persona)
             customer_persona = self.chat(prompt)
             self.output.customer_persona = json.loads(customer_persona)
-            return self.output.customer_persona
+            return str(self.output.customer_persona)
 
         def get_expert_persona() -> str:
             prompt = Prompts.get_persona_prompt(
                 self.old_expert_persona, "sarathi")
             expert_persona = self.chat(prompt)
             self.output.expert_persona = json.loads(expert_persona)
-            return self.output.expert_persona
+            return str(self.output.expert_persona)
 
         steps: list[Step] = [
             self.create_step("Generating user persona", get_user_persona),
@@ -172,7 +173,7 @@ class Compute:
             if not self.helper.run_step(step.description, step.method):
                 return None
 
-        return self.output.customer_persona
+        return str(self.output.customer_persona)
 
     def generate_transcript(self) -> str:
         self.output.transcript = self.helper.download_and_transcribe_audio()

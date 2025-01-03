@@ -1,5 +1,5 @@
 from shared.models.interfaces import TranscriptPrompts
-from shared.schemas import ScoreDetails, Topics, Persona, UserInterest, JsonPrompts, EvaluationPrompts
+from shared.schemas import ScoreDetails, Topics, Persona, UserInterest, JsonPrompts, EvaluationPrompts, Score
 
 
 class Prompts:
@@ -43,7 +43,8 @@ class Prompts:
                 """
         details_prompt = JsonPrompts(details_prompt, ScoreDetails)
 
-        score_prompt = "Give me a total score out of 100. Return only the number."
+        score_prompt = "Give me a total score out of 100."
+        score_prompt = JsonPrompts(score_prompt, Score)
 
         prompts = {"callback_prompt": callback_prompt, "summary_prompt": summary_prompt, "feedback_prompt": feedback_prompt,
                    "guidelines_prompt": guidelines_prompt, "score_details_prompt": details_prompt, "score_prompt": score_prompt}
