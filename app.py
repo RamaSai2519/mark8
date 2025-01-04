@@ -23,6 +23,7 @@ CORS(flask_app)
 quart_app = cors(quart_app)
 
 api = Api(flask_app)
+api.add_resource(QueueWaMsgsService, '/queue_wa_msgs')
 api.add_resource(ExcelUploadService, '/excel_upload')
 api.add_resource(GatherDataService, '/gather_data')
 api.add_resource(ChatService, '/chat')
