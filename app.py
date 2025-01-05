@@ -86,10 +86,17 @@ app = Starlette(routes=[
 ])
 
 if __name__ == "__main__":
+    import os
     import asyncio
-    from hypercorn.asyncio import serve
     from hypercorn.config import Config
+    from hypercorn.asyncio import serve
+
+    ENV = os.environ.get('ENV')
+    port = 8080
+    if ENV != 'main':
+        port = 8081
 
     config = Config()
-    config.bind = ["0.0.0.0:8080"]
+    # config.bind = ["0.0.0.0:8080"]
+    config.bind = [f"0.0.0.0:{port}"]
     asyncio.run(serve(app, config))
