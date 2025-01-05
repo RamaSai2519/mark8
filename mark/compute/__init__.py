@@ -122,7 +122,13 @@ class Compute:
         def get_score() -> float:
             raw_score = self.chat(prompts.score_prompt)
             raw_score = json.loads(raw_score)
-            self.output.score = raw_score.get('score', 0)
+            score = raw_score.get('score', 0)
+            if score < 0:
+                score = 0
+            else:
+                score = int(score) / 20
+                score = round(score, 2)
+            self.output.score = score
             return str(self.output.score)
 
         steps: list[Step] = [
