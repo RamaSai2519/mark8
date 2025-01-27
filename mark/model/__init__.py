@@ -6,62 +6,68 @@ from bson import ObjectId
 from mark.helper import Helper
 from mark.compute import Compute
 from datetime import datetime
+from shared.db.users import get_user_collection
+from shared.db.experts import get_experts_collections
 from shared.models.interfaces import Call, User, Expert
-from mark.config import calls_collection, callsmeta_collection, experts_collection, users_collection
+from shared.db.calls import get_calls_collection, get_callsmeta_collection
 
 
 class Process:
     def __init__(self, callId: str) -> None:
         self.callId = callId
+        self.users_collection = get_user_collection()
+        self.calls_collection = get_calls_collection()
+        self.experts_collection = get_experts_collections()
+        self.callsmeta_collection = get_callsmeta_collection()
 
     def get_user(self, user_id: ObjectId) -> None | User:
-        user = users_collection.find_one({"_id": user_id})
+        user = self.users_collection.find_one({"_id": user_id})
         if not user:
             return None
         user = Helper.clean_dict(user, User)
         return User(**user)
 
     def get_expert(self, expert_id: ObjectId) -> None | Expert:
-        expert = experts_collection.find_one({"_id": expert_id})
+        expert = self.experts_collection.find_one({"_id": expert_id})
         if not expert:
             return None
         expert = Helper.clean_dict(expert, Expert)
         return Expert(**expert)
 
     def get_call(self) -> None | Call:
-        call = calls_collection.find_one({"callId": self.callId})
+        call = self.calls_collection.find_one({"callId": self.callId})
         if not call:
             return None
         call = Helper.clean_dict(call, Call)
         return Call(**call)
 
     def get_user_calls_count(self, user_id: ObjectId) -> int:
-        return calls_collection.count_documents({"user": user_id})
+        return self.calls_collection.count_documents({"user": user_id})
 
     def update_user(self, user_id: ObjectId, customer_persona: dict) -> None:
         update_query = {"_id": user_id}
         update_values = {"$set": {"customerPersona": customer_persona}}
-        users_collection.update_one(update_query, update_values)
+        self.users_collection.update_one(update_query, update_values)
 
     def update_expert(self, expert_id: ObjectId, expert_persona: dict) -> None:
         update_query = {"_id": expert_id}
         update_values = {"$set": {"persona": expert_persona}}
-        experts_collection.update_one(update_query, update_values)
+        self.experts_collection.update_one(update_query, update_values)
 
     def update_call(self, call_id: str, conversation_score: float) -> None:
         update_query = {"callId": call_id}
         update_values = {"$set": {"conversationScore": conversation_score}}
-        calls_collection.update_one(update_query, update_values)
+        self.calls_collection.update_one(update_query, update_values)
 
     def update_call_meta(self, call_id: str, update_values: dict) -> None:
-        if callsmeta_collection.find_one({"callId": call_id}):
-            callsmeta_collection.update_one(
+        if self.callsmeta_collection.find_one({"callId": call_id}):
+            self.callsmeta_collection.update_one(
                 {"callId": call_id},
                 {"$set": update_values},
             )
         else:
             update_values["createdAt"] = datetime.now(pytz.utc)
-            callsmeta_collection.insert_one(
+            self.callsmeta_collection.insert_one(
                 update_values,
             )
 

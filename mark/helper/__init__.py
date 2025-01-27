@@ -5,15 +5,22 @@ import boto3
 import requests
 import subprocess
 from datetime import datetime
+from shared.configs import MainConfig
 from shared.schemas import UserInterest
+from shared.configs import CONFIG as config
 from urllib.parse import urlparse, ParseResult
-from mark.config import DEEPGRAM_API_KEY, AWS_ACCESS_KEY, AWS_SECRET_KEY, GAMES_PROCESSOR_URL, errorlog_collection
+from shared.db.admins import get_error_logs_collection
 
+GAMES_PROCESSOR_URL = MainConfig.URL
 s3_client = boto3.client(
-    's3', aws_access_key_id=AWS_ACCESS_KEY, aws_secret_access_key=AWS_SECRET_KEY)
+    's3',
+    aws_access_key_id=config.ACCESS_KEY,
+    aws_secret_access_key=config.SECRET_ACCESS_KEY
+)
 
 
 def log(callId: str, message: str) -> None:
+    errorlog_collection = get_error_logs_collection()
     datetime_now = datetime.now(pytz.utc)
     current_time = datetime_now.strftime("%Y-%m-%d %H:%M:%S")
     query = {"callId": callId}
@@ -111,7 +118,7 @@ class Helper:
         curl_command = [
             'curl', '--request', 'POST',
             '--url', 'https://api.deepgram.com/v1/listen?model=whisper-large&diarize=true&punctuate=true&utterances=true',
-            '--header', f'Authorization: Token {DEEPGRAM_API_KEY}',
+            '--header', f'Authorization: Token {config.DEEPGRAM_API_KEY}',
             '--header', 'content-type: audio/mp3',
             '--data-binary', f'@{self.audio_filename}'
         ]

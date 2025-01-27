@@ -1,9 +1,9 @@
 import time
 import boto3
 import tempfile
-from mark.config import *
 from pyppeteer import launch
 from pdf.htmlTemplate import htmlTemplate
+from shared.configs import CONFIG as config
 from shared.models.interfaces import InvoiceData as Input, Output
 
 
@@ -13,9 +13,9 @@ class Compute:
         self.bucket_name = "sukoon-media"
         self.client = boto3.client(
             "s3",
-            region_name=AWS_REGION,
-            aws_access_key_id=AWS_ACCESS_KEY,
-            aws_secret_access_key=AWS_SECRET_KEY
+            region_name=config.REGION,
+            aws_access_key_id=config.ACCESS_KEY,
+            aws_secret_access_key=config.SECRET_ACCESS_KEY
         )
 
     async def upload_to_s3(self, file_path: str, file_name: str) -> str:

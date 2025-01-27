@@ -1,14 +1,16 @@
 import tiktoken
 import numpy as np
 from shared.helpers.openai import ADA_Client
-from mark.config import call_prompts_collection, transcripts_collection, constants_collection
+from shared.db.embeddings import get_call_prompts_collection, get_transcripts_collection, get_constants_collection
 
 
 class Embedder:
     def __init__(self) -> None:
         self.token_limit = 8192
-        self.collection = call_prompts_collection
+        self.collection = get_call_prompts_collection()
         self.ada_client = ADA_Client().get_ada_client()
+        self.constants_collection = get_constants_collection()
+        self.transcripts_collection = get_transcripts_collection()
         self.tokenizer = tiktoken.encoding_for_model("text-embedding-ada-002")
 
     def count_tokens(self, text: str) -> int:
@@ -59,14 +61,14 @@ class Embedder:
         transcript_hash = hash(transcript)
         doc = {"hash": transcript_hash}
         doc["embedding"] = embedding
-        result = transcripts_collection.insert_one(doc)
+        result = self.transcripts_collection.insert_one(doc)
         doc["_id"] = result.inserted_id
         return doc
 
     def get_transcript_embedding(self, transcript: str) -> list:
         transcript_hash = hash(transcript)
         query = {"hash": transcript_hash}
-        doc: dict = transcripts_collection.find_one(query)
+        doc: dict = self.transcripts_collection.find_one(query)
         if doc and "embedding" in doc:
             return doc.get("embedding")
 
@@ -100,13 +102,13 @@ class Embedder:
     def store_prompt_embedding(self, embedding: list, prompt: str) -> dict:
         doc = {"prompt": prompt}
         doc["embedding"] = embedding
-        result = constants_collection.insert_one(doc)
+        result = self.constants_collection.insert_one(doc)
         doc["_id"] = result.inserted_id
         return doc
 
     def get_prompt_embedding(self, prompt: str) -> list:
         query = {"prompt": prompt}
-        doc: dict = constants_collection.find_one(query)
+        doc: dict = self.constants_collection.find_one(query)
         if doc and "embedding" in doc:
             return doc.get("embedding")
         embedding = self.compute_embedding(prompt)
