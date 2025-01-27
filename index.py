@@ -30,7 +30,7 @@ while True:
         payload = {"callId": call.callId, "canWait": True}
         print(f"Requesting processing for: {call.callId}")
         response = requests.post(
-            "http://localhost:8081/flask/process", json=payload)
+            "http://localhost:8080/flask/process", json=payload)
         try:
             print(response.json())
         except requests.exceptions.JSONDecodeError:
