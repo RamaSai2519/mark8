@@ -102,9 +102,14 @@ class Helper:
     def download_audio(self) -> None:
         if not self.recording_url.startswith("http"):
             return None
-        url: ParseResult = urlparse(self.recording_url)
-        url = url.scheme + "://" + url.netloc + url.path
-        params = {"callid": self.callId}
+        print(self.recording_url, '__recording_url')
+        if 'acefone' not in self.recording_url:
+            url: ParseResult = urlparse(self.recording_url)
+            url = url.scheme + "://" + url.netloc + url.path
+            params = {"callid": self.callId}
+        else:
+            url = self.recording_url
+            params = {}
         response = requests.get(url, params=params)
         with open(self.audio_filename, "wb") as f:
             f.write(response.content)
