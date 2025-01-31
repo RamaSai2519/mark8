@@ -35,7 +35,7 @@ class Compute:
         total_pages = total // params["size"]
         message = "{current}/{total} pages fetched"
 
-        while len(final_data) < total:
+        while params["page"] < total_pages:
             params["page"] += 1
             output = self.fetch_enagement_data(params)
             data = output.get("data")
@@ -43,6 +43,8 @@ class Compute:
             page = params["page"]
             print(message.format(current=page, total=total_pages))
             time.sleep(1)
+            if page > total_pages:
+                break
         return final_data
 
     def upload_file(self, data: list[dict]) -> str:
