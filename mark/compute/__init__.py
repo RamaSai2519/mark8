@@ -39,10 +39,10 @@ class Compute:
             try:
                 if format:
                     response = response.beta.chat.completions.parse(
-                        model="gpt-4-turbo", messages=self.message_history, response_format=format)
+                        model="gpt-4o-2024-11-20", messages=self.message_history, response_format=format)
                 else:
                     response = response.chat.completions.create(
-                        model="gpt-4-turbo", messages=self.message_history)
+                        model="gpt-4o-2024-11-20", messages=self.message_history)
                 break
             except RateLimitError:
                 time.sleep(5)

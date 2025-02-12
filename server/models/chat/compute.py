@@ -78,7 +78,7 @@ class Compute:
         while True:
             try:
                 response = client.chat.completions.create(
-                    model='gpt-4-turbo', messages=self.message_history, tools=tools)
+                    model='gpt-4o-2024-11-20', messages=self.message_history, tools=tools)
                 tool_calls = response.choices[0].message.tool_calls
                 if tool_calls:
                     self.message_history.append({
