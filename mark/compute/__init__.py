@@ -87,10 +87,12 @@ class Compute:
         analysis_result = self.chat(prompts.analysis_prompt, True)
 
         if "all good" in analysis_result.lower():
+            self.output.inappropiate_content = None
             return True
         log(self.callId, "Inappropriate content found")
         log(self.callId, f"Analysis result: {analysis_result}")
-        raise Exception("Inappropriate content found")
+        self.output.inappropiate_content = analysis_result
+        return True
 
     def create_step(self, description: str, method: callable) -> dict:
         return Step(description, method)

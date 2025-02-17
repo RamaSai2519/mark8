@@ -127,6 +127,7 @@ class Process:
             "scoreBreakup": output.score_details,
             "userCallback": output.user_callback,
             "sarathiFeedback": output.saarthi_feedback,
+            "inappropriateContent": output.inappropiate_content,
         }
 
         self.update_call(call.callId, output.score)
