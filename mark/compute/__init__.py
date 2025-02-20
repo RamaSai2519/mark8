@@ -185,6 +185,8 @@ class Compute:
 
     def generate_transcript(self) -> str:
         self.output.transcript = self.helper.download_and_transcribe_audio()
+        if not self.output.transcript:
+            return None
         self.transcript_embedding = self.embedder.get_transcript_embedding(
             self.output.transcript)
         return self.output.transcript
