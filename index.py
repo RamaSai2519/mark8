@@ -20,7 +20,7 @@ while True:
         call = Call(**call_doc)
         valid, message = Processor.validate_call(call)
         if valid:
-            if call.conversationScore or call.conversationScore == 0:
+            if call.conversationScore:
                 continue
             apt_calls.append(call)
 
