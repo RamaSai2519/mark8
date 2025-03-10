@@ -15,6 +15,8 @@ while True:
     apt_calls: list[Call] = []
 
     for call in calls:
+        if 'callId' not in call:
+            continue
         Processor = Process(call["callId"])
         call_doc = Helper.clean_dict(call, Call)
         call = Call(**call_doc)
