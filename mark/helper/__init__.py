@@ -206,12 +206,12 @@ class Helper:
         not_interested = "not_interested_user"
         not_interested_call = "not_interested_calls_user"
 
-        if interest.not_interested:
+        if interest.not_interested and interest.not_interested_in_calls:
+            payload["value"] = not_interested
+        elif interest.not_interested:
             payload["value"] = not_interested
         elif interest.not_interested_in_calls:
             payload["value"] = not_interested_call
-        elif interest.not_interested and interest.not_interested_in_calls:
-            payload["value"] = not_interested
         else:
             return None
 
