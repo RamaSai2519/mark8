@@ -210,7 +210,7 @@ class Compute:
             self.create_step("Evaluating call", self.evaluate_call),
             self.create_step("Identifying topics", self.identify_topics),
             self.create_step("Generating personas", self.generate_personas),
-            self.create_step("Checking interest", self.check_interest)
+            # self.create_step("Checking interest", self.check_interest)
         ]
 
         for step in steps:
