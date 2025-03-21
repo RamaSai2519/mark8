@@ -23,6 +23,7 @@ quart-cors = "*"
 flask-cors = "*"
 flask_restful = "*"
 flask_jwt_extended = "*"
+firebase-admin = "*"
 
 [dev-packages]
 
