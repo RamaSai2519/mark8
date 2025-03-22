@@ -2,7 +2,6 @@ from shared.models.interfaces import SendFCMMsgsInput as Input, Output, FilterUs
 from shared.db.users import get_user_collection, get_user_fcm_token_collection
 from server.models.common import FilterUsersByCohort
 from firebase_admin import credentials, messaging
-from shared.models.constants import OutputStatus
 from shared.models.common import Common
 import firebase_admin
 import os
@@ -25,7 +24,7 @@ class Compute:
                 'databaseURL': 'https://games-sukoon-app-default-rtdb.firebaseio.com'
             })
 
-    def broadcast_message(self, tokens: list[dict], body: str, title: str, image_url: str) -> None:
+    def broadcast_message(self, tokens: list[dict], body: str, title: str, image_url: str) -> dict:
         self.initialize_firebase_admin()
         messages = []
         for token in tokens:
@@ -41,8 +40,10 @@ class Compute:
             )
 
         response = messaging.send_each(messages)
-        print(response.success_count, 'Success Count')
-        print(response.failure_count, 'Failure Count')
+        return {
+            'success': response.success_count,
+            'failure': response.failure_count
+        }
 
     def compute(self) -> Output:
         cohorts_input = Common.clean_dict(
@@ -55,7 +56,6 @@ class Compute:
             users_count = self.collection.count_documents(query)
             return Output(
                 output_details={'count': users_count},
-                output_status=OutputStatus.SUCCESS,
                 output_message='Preview generated successfully'
             )
 
@@ -66,9 +66,10 @@ class Compute:
         for doc in tokens_docs:
             tokens.extend([token['token'] for token in doc['tokens']])
 
-        self.broadcast_message(
+        response_data = self.broadcast_message(
             tokens, self.input.body, self.input.title, self.input.image_url)
 
         return Output(
-            output_message='Notified Users Successfully'
+            output_details=response_data,
+            output_message='Notified Users Successfully' + str(response_data)
         )
