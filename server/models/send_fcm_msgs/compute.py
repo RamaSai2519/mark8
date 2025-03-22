@@ -41,8 +41,8 @@ class Compute:
             )
 
         response = messaging.send_each(messages)
-        print(response.success_count, 'Response')
-
+        print(response.success_count, 'Success Count')
+        print(response.failure_count, 'Failure Count')
 
     def compute(self) -> Output:
         cohorts_input = Common.clean_dict(
@@ -50,7 +50,6 @@ class Compute:
         cohorts_input = FilterUsersByCohortInput(**cohorts_input)
         cohorts_filter = FilterUsersByCohort(cohorts_input)
         self.user_ids = cohorts_filter.get_user_ids()
-        print(self.user_ids, 'Final user ids')
         query = {'_id': {'$in': self.user_ids}}
         if self.input.action == 'preview':
             users_count = self.collection.count_documents(query)
