@@ -70,5 +70,5 @@ class Compute:
             tokens, self.input.body, self.input.title, self.input.image_url)
 
         return Output(
-            output_message='Messages queued successfully'
+            output_message='Notified Users Successfully'
         )
