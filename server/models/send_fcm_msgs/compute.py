@@ -39,7 +39,19 @@ class Compute:
                 )
             )
 
-        response = messaging.send_each(messages)
+        output = {'success': 0, 'failure': 0}
+
+        if len(messages) > 500:
+            for i in range(0, len(messages), 500):
+                batch = messages[i:i + 500]
+                response = messaging.send_each(batch)
+                output['success'] += response.success_count
+                output['failure'] += response.failure_count
+        else:
+            response = messaging.send_each(messages)
+            output['success'] += response.success_count
+            output['failure'] += response.failure_count
+
         return {
             'success': response.success_count,
             'failure': response.failure_count
