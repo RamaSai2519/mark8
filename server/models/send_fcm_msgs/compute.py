@@ -24,10 +24,12 @@ class Compute:
                 'databaseURL': 'https://games-sukoon-app-default-rtdb.firebaseio.com'
             })
 
-    def broadcast_message(self, tokens: list[dict], body: str, title: str, image_url: str) -> dict:
+    def broadcast_message(self, tokens: list[str], body: str, title: str, image_url: str) -> dict:
         self.initialize_firebase_admin()
         messages = []
         for token in tokens:
+            if not token:
+                continue
             messages.append(
                 messaging.Message(
                     token=token,
@@ -52,10 +54,7 @@ class Compute:
             output['success'] += response.success_count
             output['failure'] += response.failure_count
 
-        return {
-            'success': response.success_count,
-            'failure': response.failure_count
-        }
+        return output
 
     def compute(self) -> Output:
         cohorts_input = Common.clean_dict(
