@@ -1,5 +1,6 @@
 from shared.models.interfaces import SendFCMMsgsInput as Input, Output, FilterUsersByCohortInput
 from shared.db.users import get_user_collection, get_user_fcm_token_collection
+from shared.db.misc import get_notifications_collection
 from server.models.common import FilterUsersByCohort
 from firebase_admin import credentials, messaging
 from shared.models.common import Common
@@ -56,6 +57,19 @@ class Compute:
 
         return output
 
+    def store_order(self, output: dict) -> str:
+        notification_collection = get_notifications_collection()
+        input = self.input.__dict__
+        input = Common.filter_none_values(input)
+        input = Common.filter_falsy_values(input)
+        insertion = notification_collection.insert_one({
+            'input': input,
+            'output': output,
+            'sender': self.input.sender,
+            'sent_at': Common.get_current_utc_time()
+        })
+        return str(insertion.inserted_id)
+
     def compute(self) -> Output:
         cohorts_input = Common.clean_dict(
             self.input.__dict__, FilterUsersByCohortInput)
@@ -63,8 +77,8 @@ class Compute:
         cohorts_filter = FilterUsersByCohort(cohorts_input)
         self.user_ids = cohorts_filter.get_user_ids()
         query = {'_id': {'$in': self.user_ids}}
+        users_count = self.collection.count_documents(query)
         if self.input.action == 'preview':
-            users_count = self.collection.count_documents(query)
             return Output(
                 output_details={'count': users_count},
                 output_message='Preview generated successfully'
@@ -79,6 +93,9 @@ class Compute:
 
         response_data = self.broadcast_message(
             tokens, self.input.body, self.input.title, self.input.image_url)
+        response_data['users_count'] = users_count
+        order_id = self.store_order(response_data)
+        response_data['order_id'] = order_id
 
         return Output(
             output_details=response_data,
