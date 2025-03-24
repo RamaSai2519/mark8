@@ -131,6 +131,7 @@ class Helper:
         log(self.callId, "Transcribing audio")
         result = subprocess.run(
             curl_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        os.remove(self.audio_filename)
         if result.returncode != 0:
             log(self.callId, f"Error: {result.stderr}")
             return False
@@ -144,7 +145,6 @@ class Helper:
             return False
 
         log(self.callId, "Transcription completed")
-        os.remove(self.audio_filename)
         Helper.upload_transcript(jq_result.stdout, self.callId)
         return jq_result.stdout
 
