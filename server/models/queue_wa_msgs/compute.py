@@ -5,6 +5,7 @@ from shared.db.users import get_user_collection
 from shared.models.constants import TimeFormats
 from shared.configs import CONFIG as config
 from shared.models.common import Common
+from datetime import timedelta
 import requests
 import time
 
@@ -31,7 +32,7 @@ class Compute:
             'job_type': 'WA',
             'payload': payload,
             'status': 'PENDING',
-            'job_time': Common.get_current_utc_time().strftime(TimeFormats.AWS_TIME_FORMAT),
+            'job_time': (Common.get_current_utc_time() + timedelta(minutes=1)).strftime(TimeFormats.AWS_TIME_FORMAT),
             'user_requested': False
         }
 
@@ -58,6 +59,7 @@ class Compute:
             url = config.URL + '/actions/schedules'
             response = requests.post(url, json=payload)
             response = response.json()
+            print(response, 'Response from scheduling')
             if not response.get('output_status'):
                 print(response, 'Failed to schedule job')
             print('Scheduled WA text for', user.get(
