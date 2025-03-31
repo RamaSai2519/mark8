@@ -105,7 +105,7 @@ class FilterUsersByCohort:
         slugs = self.events_collection.distinct('slug', query)
         query = {'source': {'$in': slugs}}
         if self.input.event_joined == True:
-            query['joined'] = self.input.event_joined
+            query['joined'] = True
         user_phones = self.event_users_collection.distinct(
             'phoneNumber', query)
         query = {'phoneNumber': {'$in': user_phones}}
