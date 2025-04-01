@@ -110,6 +110,8 @@ class Compute:
                 continue
 
             start_time = self.input.start_time
+            start_time = datetime.strptime(
+                start_time, TimeFormats.ANTD_TIME_FORMAT)
             current_time = Common.get_current_utc_time()
             if start_time < current_time:
                 start_time = current_time
