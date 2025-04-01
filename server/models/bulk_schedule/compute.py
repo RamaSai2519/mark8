@@ -16,6 +16,7 @@ import time
 
 class Compute:
     def __init__(self, input: Input) -> None:
+        self.input = input
         self.calls_df = pd.read_csv(input.file_url)
         self.calls_list = self.calls_df.to_dict(orient='records')
         self.users_collection = get_user_collection()
@@ -81,8 +82,8 @@ class Compute:
         url = config.URL + '/actions/slots'
         payload = {
             'expert': expert_id,
-            'datetime': job_time.strftime(TimeFormats.ANTD_TIME_FORMAT),
-            'duration': 60
+            'duration': self.input.call_duration,
+            'datetime': job_time.strftime(TimeFormats.ANTD_TIME_FORMAT)
         }
         response = requests.post(url, json=payload)
         slots = response.json()
@@ -109,7 +110,7 @@ class Compute:
                 print('Invalid user or expert')
                 continue
 
-            start_time = datetime(2025, 2, 18, 0, 0, 0, tzinfo=pytz.utc)
+            start_time = self.input.start_time
             current_time = Common.get_current_utc_time()
             if start_time < current_time:
                 start_time = current_time
