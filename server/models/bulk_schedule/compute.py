@@ -10,6 +10,7 @@ from bson import ObjectId
 import pandas as pd
 import threading
 import requests
+import pytz
 import time
 
 
@@ -109,9 +110,7 @@ class Compute:
                 print('Invalid user or expert')
                 continue
 
-            start_time = self.input.start_time
-            start_time = datetime.strptime(
-                start_time, TimeFormats.ANTD_TIME_FORMAT)
+            start_time = datetime(2025, 2, 18, 0, 0, 0, tzinfo=pytz.utc)
             current_time = Common.get_current_utc_time()
             if start_time < current_time:
                 start_time = current_time
