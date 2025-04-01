@@ -10,7 +10,6 @@ from bson import ObjectId
 import pandas as pd
 import threading
 import requests
-import pytz
 import time
 
 
